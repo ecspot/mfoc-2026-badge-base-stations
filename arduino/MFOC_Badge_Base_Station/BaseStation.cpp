@@ -1,3 +1,5 @@
+#include "BaseStation.h"
+
 #include <Arduino.h>
 #include <IRremote.hpp>
 
@@ -9,6 +11,8 @@ using namespace BadgeProtocol;
 static_assert(
     STATION_NUMBER >= MIN_STATION_NUMBER && STATION_NUMBER <= MAX_STATION_NUMBER,
     "STATION_NUMBER must be in the range 1..5");
+
+namespace {
 
 unsigned long lastTransmissionMs = 0;
 
@@ -50,7 +54,9 @@ void printReceivedFrame(uint16_t address, uint8_t command) {
     Serial.println(command, HEX);
 }
 
-void setup() {
+}  // namespace
+
+void baseStationSetup() {
     pinMode(STATUS_LED_PIN, OUTPUT);
     pinMode(ATTRACTION_TRIGGER_PIN, OUTPUT);
     digitalWrite(STATUS_LED_PIN, LOW);
@@ -78,7 +84,7 @@ void setup() {
     }
 }
 
-void loop() {
+void baseStationLoop() {
     const unsigned long now = millis();
 
     if (IrReceiver.decode()) {

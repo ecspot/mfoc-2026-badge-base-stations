@@ -1,6 +1,6 @@
 #include <cassert>
 #include <cstdint>
-#include "../src/protocol.h"
+#include "../MFOC_Badge_Base_Station/protocol.h"
 
 int main() {
     using namespace BadgeProtocol;

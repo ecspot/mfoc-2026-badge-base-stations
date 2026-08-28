@@ -17,7 +17,7 @@ Suggested transmitter stage: D3 through about 1 kΩ to an NPN transistor base, e
 
 ## Configuration
 
-Edit [`src/config.h`](src/config.h):
+Edit [`MFOC_Badge_Base_Station/config.h`](MFOC_Badge_Base_Station/config.h):
 
 ```cpp
 constexpr uint8_t STATION_NUMBER = 1;  // 1..5
@@ -32,14 +32,18 @@ constexpr StationMode STATION_MODE = StationMode::ContinuousBroadcast;
 
 ## Arduino IDE
 
-1. Keep this sketch folder named `arduino` so it matches `arduino.ino`.
-2. Open [`arduino.ino`](arduino.ino) in Arduino IDE.
+1. Open
+   [`MFOC_Badge_Base_Station/MFOC_Badge_Base_Station.ino`](MFOC_Badge_Base_Station/MFOC_Badge_Base_Station.ino)
+   in Arduino IDE. Keep the enclosing folder name unchanged so it matches the
+   `.ino` filename.
+2. The sketch tab contains the real Arduino `setup()` and `loop()` entry points.
+   They call the implementation in `BaseStation.cpp` through `BaseStation.h`.
 3. In Library Manager, install **IRremote** by Armin Joachimsmeyer.
 4. Select **Arduino Uno** or the appropriate ATmega328P Nano board and port.
 5. Click **Verify**, then **Upload**.
 
-Arduino IDE compiles `arduino.ino` together with the implementation under
-`src/`, so it uses the same firmware source as PlatformIO.
+All Arduino source files are in the same conventional sketch folder and are
+shown as tabs in Arduino IDE. PlatformIO builds that same folder.
 
 ## PlatformIO build and upload
 
@@ -55,9 +59,10 @@ Serial speed is 115200 baud. The firmware logs every decoded NEC frame and every
 
 ## Files
 
-- `arduino.ino` — Arduino IDE sketch entry point.
+- `MFOC_Badge_Base_Station/MFOC_Badge_Base_Station.ino` — `setup()` and `loop()`.
+- `MFOC_Badge_Base_Station/BaseStation.cpp` — station implementation.
+- `MFOC_Badge_Base_Station/BaseStation.h` — interface used by the sketch.
+- `MFOC_Badge_Base_Station/config.h` — pins, mode, station number, and timing.
+- `MFOC_Badge_Base_Station/protocol.h` — protocol constants and trigger recognition.
 - `platformio.ini` — Uno target and Arduino-IRremote dependency.
-- `src/main.cpp` — runnable station firmware.
-- `src/config.h` — pins, mode, station number, and timing.
-- `src/protocol.h` — protocol constants and trigger recognition.
 - `tests/protocol_test.cpp` — host-readable protocol assertions.

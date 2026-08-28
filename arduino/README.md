@@ -1,6 +1,6 @@
 # Arduino Base Station
 
-Target: Arduino Uno or Nano (ATmega328P), Arduino C++/PlatformIO.
+Target: Arduino Uno or Nano (ATmega328P), using Arduino IDE or PlatformIO.
 
 ## Default pins
 
@@ -30,7 +30,18 @@ For continuous operation:
 constexpr StationMode STATION_MODE = StationMode::ContinuousBroadcast;
 ```
 
-## Build and upload
+## Arduino IDE
+
+1. Keep this sketch folder named `arduino` so it matches `arduino.ino`.
+2. Open [`arduino.ino`](arduino.ino) in Arduino IDE.
+3. In Library Manager, install **IRremote** by Armin Joachimsmeyer.
+4. Select **Arduino Uno** or the appropriate ATmega328P Nano board and port.
+5. Click **Verify**, then **Upload**.
+
+Arduino IDE compiles `arduino.ino` together with the implementation under
+`src/`, so it uses the same firmware source as PlatformIO.
+
+## PlatformIO build and upload
 
 From this folder:
 
@@ -44,6 +55,7 @@ Serial speed is 115200 baud. The firmware logs every decoded NEC frame and every
 
 ## Files
 
+- `arduino.ino` — Arduino IDE sketch entry point.
 - `platformio.ini` — Uno target and Arduino-IRremote dependency.
 - `src/main.cpp` — runnable station firmware.
 - `src/config.h` — pins, mode, station number, and timing.

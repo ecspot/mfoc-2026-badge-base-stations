@@ -12,10 +12,12 @@ not change any other base station.
 - Role: transmit only; no IR receiver is initialized or required.
 - Trigger: a normally-open push button connected between GP15 and GND.
 - Idle: no NEC transmission. The program only samples the button.
-- Hold: after 3 seconds of continuous contact, sends one activation containing
-  three complete extended-NEC frames.
-- Early release: releasing before 3 seconds cancels the attempt.
-- Continued hold: does not repeat.
+- Success: releasing between 3 and 4 seconds sends one activation containing
+  three complete extended-NEC frames and lights the green LED for 3 seconds.
+- Early release: releasing before 3 seconds fails and lights the red LED for 2
+  seconds.
+- Overlong hold: reaching 4 seconds fails immediately and lights the red LED for
+  2 seconds without transmitting.
 - Re-arm: the button must be released stably for 30 ms before another hold can
   transmit.
 
@@ -39,6 +41,16 @@ and needs no external pull-up resistor.
 | Ground | GND, physical pin 23 or another GND |
 | Status | On-board LED |
 
+### Result LEDs
+
+Use a 220–330 Ω series resistor with each external LED.
+
+| Function | Pico connection |
+|---|---|
+| Red failure LED | GP16, physical pin 21 |
+| Green success LED | GP18, physical pin 24 |
+| LED cathodes | GND, physical pin 23 or another GND |
+
 Do not connect the LTE-4208 directly to GP17. Use the same current-limited
 low-side transistor or logic-MOSFET driver described in [`../../pico/README.md`](../../pico/README.md).
 A conservative 3.3 V starting circuit is GP17 through about 1 kΩ to an NPN base,
@@ -55,14 +67,13 @@ and optical range on the assembled hardware.
    - `nec_codec.py`
 3. Reset the Pico.
 4. Open the USB serial console. It should print
-   `Hold button for 3 seconds to transmit`.
+   `Release between 3 and 4 seconds to unlock`.
 5. Confirm that no IR activity occurs while the button is released.
-6. Hold the button for less than 3 seconds, release it, and confirm that it does
-   not transmit.
-7. Hold the button continuously for 3 seconds. The status LED lights during one
-   transmission.
-8. Continue holding the button and confirm that it does not transmit again.
-9. Release, then hold for 3 seconds again to initiate the next transmission.
+6. Release before 3 seconds and confirm that the red LED lights without IR.
+7. Release between 3 and 4 seconds and confirm that the green LED lights while
+   one three-frame activation is transmitted.
+8. Continue holding through 4 seconds and confirm that the red LED lights
+   without IR, then release to re-arm the station.
 
 ## Desktop tests
 
@@ -73,5 +84,5 @@ python -m unittest discover -s stations/station-01-pico-button-unlock/tests -v
 ```
 
 The tests lock the address and command, verify the complete NEC frame value, and
-verify the 3-second threshold, early-release cancellation, held-button
-suppression, and release/re-hold behavior.
+verify both hold-time boundaries, failure suppression, and release/re-hold
+behavior.

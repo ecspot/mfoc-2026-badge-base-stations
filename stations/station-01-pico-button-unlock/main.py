@@ -10,7 +10,8 @@ BUTTON_PIN = 15
 IR_TRANSMITTER_PIN = 17
 STATUS_LED_PIN = "LED"
 
-BUTTON_DEBOUNCE_MS = 30
+BUTTON_HOLD_MS = 3000
+BUTTON_RELEASE_DEBOUNCE_MS = 30
 BUTTON_POLL_MS = 5
 FULL_FRAME_TRANSMISSIONS = 3
 BETWEEN_FRAMES_MS = 120
@@ -19,7 +20,8 @@ button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
 status_led = Pin(STATUS_LED_PIN, Pin.OUT)
 transmitter = NECTransmitter(IR_TRANSMITTER_PIN)
 press_detector = ButtonPressDetector(
-    debounce_ms=BUTTON_DEBOUNCE_MS,
+    hold_ms=BUTTON_HOLD_MS,
+    release_debounce_ms=BUTTON_RELEASE_DEBOUNCE_MS,
     elapsed_ms=ticks_diff,
 )
 
@@ -48,7 +50,7 @@ def run():
     print("MFOC Station 1 - Pico button unlock transmitter")
     print("Button: GP{} to GND".format(BUTTON_PIN))
     print("IR TX: GP{}".format(IR_TRANSMITTER_PIN))
-    print("Waiting for button press")
+    print("Hold button for 3 seconds to transmit")
 
     while True:
         is_pressed = button.value() == 0

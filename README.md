@@ -13,7 +13,7 @@ This folder is the source of truth for the base-station project.
 
 | Station | Platform | Locked address | Trigger and behavior |
 |---|---|---:|---|
-| [Station 1](stations/station-01-pico-button-unlock/) | Raspberry Pi Pico | `0xFB21` | Button press sends unlock command `0x07`; idle and held-button states do not transmit. |
+| [Station 1](stations/station-01-pico-button-unlock/) | Raspberry Pi Pico | `0xFB21` | A continuous 3-second button hold sends unlock command `0x07`; early release cancels and continued holding does not repeat. |
 
 Both implementations provide:
 

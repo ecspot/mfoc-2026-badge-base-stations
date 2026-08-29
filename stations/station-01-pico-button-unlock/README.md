@@ -11,11 +11,13 @@ not change any other base station.
 - Unlock command: **`0x07`**.
 - Role: transmit only; no IR receiver is initialized or required.
 - Trigger: a normally-open push button connected between GP15 and GND.
-- Idle: no NEC transmission. The program only samples and debounces the button.
-- Press: after 30 ms of stable contact, sends one activation containing three
-  complete extended-NEC frames.
-- Hold: does not repeat.
-- Re-arm: the button must be released stably before another press can transmit.
+- Idle: no NEC transmission. The program only samples the button.
+- Hold: after 3 seconds of continuous contact, sends one activation containing
+  three complete extended-NEC frames.
+- Early release: releasing before 3 seconds cancels the attempt.
+- Continued hold: does not repeat.
+- Re-arm: the button must be released stably for 30 ms before another hold can
+  transmit.
 
 ## Wiring
 
@@ -52,11 +54,15 @@ and optical range on the assembled hardware.
    - `nec.py`
    - `nec_codec.py`
 3. Reset the Pico.
-4. Open the USB serial console. It should print `Waiting for button press`.
+4. Open the USB serial console. It should print
+   `Hold button for 3 seconds to transmit`.
 5. Confirm that no IR activity occurs while the button is released.
-6. Press and hold the button. The status LED lights during one transmission.
-7. Continue holding the button and confirm that it does not transmit again.
-8. Release and press again to initiate the next transmission.
+6. Hold the button for less than 3 seconds, release it, and confirm that it does
+   not transmit.
+7. Hold the button continuously for 3 seconds. The status LED lights during one
+   transmission.
+8. Continue holding the button and confirm that it does not transmit again.
+9. Release, then hold for 3 seconds again to initiate the next transmission.
 
 ## Desktop tests
 
@@ -67,4 +73,5 @@ python -m unittest discover -s stations/station-01-pico-button-unlock/tests -v
 ```
 
 The tests lock the address and command, verify the complete NEC frame value, and
-verify debounce, held-button suppression, and release/re-press behavior.
+verify the 3-second threshold, early-release cancellation, held-button
+suppression, and release/re-hold behavior.

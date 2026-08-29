@@ -6,4 +6,4 @@ interaction code stays here rather than changing the reusable `arduino/` or
 
 | Station | Platform | Address | Trigger | Deployment |
 |---|---|---:|---|---|
-| 1 | Raspberry Pi Pico | `0xFB21` | Button press | [`station-01-pico-button-unlock/`](station-01-pico-button-unlock/) |
+| 1 | Raspberry Pi Pico | `0xFB21` | 3-second button hold | [`station-01-pico-button-unlock/`](station-01-pico-button-unlock/) |

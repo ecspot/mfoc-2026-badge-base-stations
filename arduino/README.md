@@ -146,18 +146,17 @@ platformio run -e receive-only -e receive-evaluate-unlock -e transmit-unlock
 PlatformIO's environment build flag selects the role and overrides the default
 role in `config.h`. Both workflows compile the same sketch implementation.
 
-## NEC implementation decision
+## Extending the code
 
-Arduino uses the maintained **Arduino-IRremote** library rather than custom
-carrier, decoder, or parity code. The library supports NEC send/receive,
-extended 16-bit NEC addresses, LSB-first framing, and command complement
-validation.[3] The station address is 16-bit (`0xFB21` through `0xFB30`) and the
-unlock command is `0x07`; the library produces the inverted command byte.
-
-This is already the appropriate abstraction for talking to the badge and can
-be expanded with additional address/command rules in `protocol.h` and dispatch
-logic in `BaseStation.cpp`. Replacing Arduino-IRremote would add risk without
-adding useful badge capability.
+- Add badge commands, station addresses, and trigger rules in `protocol.h`.
+- Add station-role capability rules in `StationRoles.h`.
+- Add received-command handling, NEC responses, GPIO actions, or serial actions
+  in `BaseStation.cpp`.
+- Replace the receive-only `doSomething(address, command)` stub with the action
+  required by an attraction.
+- Add a PlatformIO environment for each new deployable role so every variant is
+  compiled independently.
+- Add compile-time assertions under `tests/` for new protocol and role rules.
 
 ## Files
 
@@ -175,5 +174,3 @@ adding useful badge capability.
 [6] https://optoelectronics.liteon.com/upload/download/DS50-2005-011/LTE-4208M%20Data%20Sheet%20%28Rev1.0%29.PDF — Lite-On LTE-4208M datasheet
 
 [2] https://www.vishay.com/docs/82832/tsop986.pdf — Vishay TSOP986 series datasheet
-
-[3] https://arduino-irremote.github.io/Arduino-IRremote — Arduino-IRremote documentation

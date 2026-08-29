@@ -88,30 +88,18 @@ project does not modify the badge firmware.
 
 Receive-only customization begins at `do_something()` in `main.py`.
 
-## NEC implementation decision
+## Extending the code
 
-MicroPython does not provide a built-in NEC class. This project currently keeps
-a focused local driver:
-
-- hardware PWM generates a 38 kHz carrier at approximately 33% duty;
-- transmission emits an extended 16-bit address, 8-bit command, and inverted
-  command, LSB first;
-- reception captures the active-low demodulated envelope and validates the
-  command complement;
-- pure-Python tests verify the `0xFB21` / `0x07` frame value and decoder.
-
-Two premade alternatives were evaluated:
-
-- Peter Hinch's mature MIT-licensed `micropython_ir` supports Pico receive and
-  PIO-backed transmit, including 16-bit NEC addresses.[4]
-- Pimoroni's MIT-licensed `aye-arr` 1.0 uses RP2040/RP2350 PIO for NEC transmit
-  and receive and exposes `send_addr_cmd()` for 16-bit addresses.[5]
-
-Neither adds badge-level behavior we currently lack, and adopting either would
-add a third-party package deployment requirement. Keep the current driver for
-the alpha. If scope testing shows MicroPython envelope jitter or unreliable
-range, replace the hardware layer with a PIO-backed library while preserving
-`protocol.py`, `station_roles.py`, and the application behavior.
+- Add badge commands, station addresses, and trigger rules in `protocol.py`.
+- Add station-role capability rules in `station_roles.py`.
+- Add received-command handling, NEC responses, GPIO actions, or serial actions
+  in `main.py`.
+- Replace the receive-only `do_something(address, command)` stub with the action
+  required by an attraction.
+- Keep NEC carrier and edge-timing changes isolated in `nec.py` and pure frame
+  encoding/decoding changes in `nec_codec.py`.
+- Add desktop tests under `tests/` for every new protocol, role, encoder, or
+  decoder behavior.
 
 ## Tests
 
@@ -131,7 +119,3 @@ badge.
 [6] https://optoelectronics.liteon.com/upload/download/DS50-2005-011/LTE-4208M%20Data%20Sheet%20%28Rev1.0%29.PDF — Lite-On LTE-4208M datasheet
 
 [2] https://www.vishay.com/docs/82832/tsop986.pdf — Vishay TSOP986 series datasheet
-
-[4] https://github.com/peterhinch/micropython_ir — micropython_ir repository
-
-[5] https://pypi.org/project/aye-arr — Aye Arr package documentation

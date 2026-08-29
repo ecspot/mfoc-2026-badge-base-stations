@@ -15,6 +15,8 @@ This folder is the source of truth for the base-station project.
 |---|---|---:|---|
 | [Station 1](stations/station-01-pico-button-unlock/) | Raspberry Pi Pico | `0xFB21` | A continuous 3-second button hold sends unlock command `0x07`; early release cancels and continued holding does not repeat. |
 | [Station 2](stations/station-02-arduino-servo-target/) | Arduino Uno/Nano | `0xFB22` | A badge arms a sweeping servo target; a button press in the 80°–100° zone sends unlock command `0x07`. |
+| [Station 3](stations/station-03-pico-reaction-time/) | Raspberry Pi Pico | `0xFB24` | A badge arms a reaction game; pressing within 750 ms of a random LED signal sends unlock command `0x07`. |
+| [Station 4](stations/station-04-arduino-shadow-light/) | Arduino Uno/Nano | `0xFB28` | A badge starts light calibration; completing cover–uncover–cover sends unlock command `0x07`. |
 
 Both implementations provide:
 

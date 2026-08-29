@@ -2,10 +2,20 @@
 
 #include <Arduino.h>
 
-enum class StationMode : uint8_t {
-    TriggeredResponse,
-    ContinuousBroadcast
-};
+#include "StationRoles.h"
+
+#define MFOC_ROLE_RECEIVE_ONLY 0
+#define MFOC_ROLE_RECEIVE_EVALUATE_UNLOCK 1
+#define MFOC_ROLE_TRANSMIT_UNLOCK 2
+
+// Arduino IDE users select one role here. PlatformIO environments override it
+// with a build flag so each role can be built without editing this file.
+#ifndef MFOC_STATION_ROLE
+#define MFOC_STATION_ROLE MFOC_ROLE_RECEIVE_EVALUATE_UNLOCK
+#endif
+
+constexpr StationRole STATION_ROLE =
+    static_cast<StationRole>(MFOC_STATION_ROLE);
 
 // Arduino Uno/Nano wiring defaults.
 constexpr uint8_t IR_RECEIVER_PIN = 2;        // OUT from 38 kHz demodulating receiver
@@ -15,9 +25,6 @@ constexpr uint8_t STATUS_LED_PIN = LED_BUILTIN;
 
 // Station 1 unlocks the first one-hot message flag. Valid values: 1..5.
 constexpr uint8_t STATION_NUMBER = 1;
-
-// Change to ContinuousBroadcast for an always-broadcasting station.
-constexpr StationMode STATION_MODE = StationMode::TriggeredResponse;
 
 constexpr unsigned long BROADCAST_INTERVAL_MS = 2000UL;
 constexpr unsigned long RESPONSE_COOLDOWN_MS = 750UL;

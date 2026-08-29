@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-from nec_codec import decode_nec_edges
+from nec_codec import decode_nec_edges, encode_nec_frame
 
 
 def make_edges(address, command):
@@ -18,6 +18,15 @@ def make_edges(address, command):
 
 
 class NecCodecTests(unittest.TestCase):
+    def test_encodes_extended_nec_address_and_command(self):
+        self.assertEqual(encode_nec_frame(0xFB21, 0x07), 0xF807FB21)
+
+    def test_rejects_out_of_range_encode_values(self):
+        with self.assertRaises(ValueError):
+            encode_nec_frame(0x10000, 0x07)
+        with self.assertRaises(ValueError):
+            encode_nec_frame(0xFB21, 0x100)
+
     def test_decodes_extended_nec_address_and_command(self):
         levels, durations = make_edges(0xFB21, 0x07)
         self.assertEqual(decode_nec_edges(levels, durations, len(levels)), (0xFB21, 0x07))

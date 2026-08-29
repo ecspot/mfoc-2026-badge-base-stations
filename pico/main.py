@@ -11,21 +11,30 @@ from config import (
     FULL_FRAME_TRANSMISSIONS,
     IR_RECEIVER_PIN,
     IR_TRANSMITTER_PIN,
-    MODE_CONTINUOUS,
-    MODE_TRIGGERED,
     RESPONSE_COOLDOWN_MS,
-    STATION_MODE,
+    STATION_ROLE,
     STATION_NUMBER,
     STATUS_LED_PIN,
 )
 from nec import NECReceiver, NECTransmitter
 from protocol import UNLOCK_COMMAND, is_badge_trigger_command, make_unlock_address
+from station_roles import (
+    ROLE_RECEIVE_ONLY,
+    ROLE_TRANSMIT_UNLOCK,
+    role_uses_receiver,
+    role_uses_transmitter,
+    should_transmit_unlock,
+    validate_station_role,
+)
 
 
 status_led = Pin(STATUS_LED_PIN, Pin.OUT)
 attraction_output = Pin(ATTRACTION_TRIGGER_PIN, Pin.OUT)
-receiver = NECReceiver(IR_RECEIVER_PIN)
-transmitter = NECTransmitter(IR_TRANSMITTER_PIN)
+validate_station_role(STATION_ROLE)
+receiver = NECReceiver(IR_RECEIVER_PIN) if role_uses_receiver(STATION_ROLE) else None
+transmitter = (
+    NECTransmitter(IR_TRANSMITTER_PIN) if role_uses_transmitter(STATION_ROLE) else None
+)
 last_transmission_ms = ticks_add(ticks_ms(), -BROADCAST_INTERVAL_MS)
 
 
@@ -33,6 +42,15 @@ def pulse_attraction_output():
     attraction_output.on()
     sleep_ms(ATTRACTION_PULSE_MS)
     attraction_output.off()
+
+
+def do_something(address, command):
+    """Receive-only extension point for an attraction-specific action."""
+    print(
+        "TODO do_something address=0x{:04X} command=0x{:02X}".format(
+            address, command
+        )
+    )
 
 
 def send_unlock_frame(reason):
@@ -45,7 +63,8 @@ def send_unlock_frame(reason):
     )
 
     status_led.on()
-    receiver.pause()
+    if receiver is not None:
+        receiver.pause()
     try:
         for frame_index in range(FULL_FRAME_TRANSMISSIONS):
             transmitter.send(address, UNLOCK_COMMAND)
@@ -53,7 +72,8 @@ def send_unlock_frame(reason):
                 sleep_ms(BETWEEN_FRAMES_MS)
     finally:
         transmitter.off()
-        receiver.resume()
+        if receiver is not None:
+            receiver.resume()
 
     pulse_attraction_output()
     status_led.off()
@@ -61,35 +81,34 @@ def send_unlock_frame(reason):
 
 
 def run():
-    if STATION_MODE not in (MODE_TRIGGERED, MODE_CONTINUOUS):
-        raise ValueError("STATION_MODE must be 'triggered' or 'continuous'")
-
     status_led.off()
     attraction_output.off()
     print("MFOC badge base station alpha - Raspberry Pi Pico")
-    print(
-        "IR RX GP{}, IR TX GP{}, attraction GP{}".format(
-            IR_RECEIVER_PIN, IR_TRANSMITTER_PIN, ATTRACTION_TRIGGER_PIN
-        )
-    )
-    print("Mode: {}".format(STATION_MODE))
+    if receiver is not None:
+        print("IR RX GP{}".format(IR_RECEIVER_PIN))
+    if transmitter is not None:
+        print("IR TX GP{}".format(IR_TRANSMITTER_PIN))
+    print("Attraction GP{}".format(ATTRACTION_TRIGGER_PIN))
+    print("Role: {}".format(STATION_ROLE))
 
     while True:
         now = ticks_ms()
-        frame = receiver.read()
+        frame = receiver.read() if receiver is not None else None
         if frame is not None:
             address, command = frame
             print("RX NEC address=0x{:04X} command=0x{:02X}".format(address, command))
             ready = ticks_diff(now, last_transmission_ms) >= RESPONSE_COOLDOWN_MS
-            if (
-                STATION_MODE == MODE_TRIGGERED
-                and is_badge_trigger_command(command)
-                and ready
+            if STATION_ROLE == ROLE_RECEIVE_ONLY:
+                do_something(address, command)
+            elif should_transmit_unlock(
+                STATION_ROLE,
+                is_badge_trigger_command(command),
+                ready,
             ):
                 send_unlock_frame("badge trigger")
 
         if (
-            STATION_MODE == MODE_CONTINUOUS
+            STATION_ROLE == ROLE_TRANSMIT_UNLOCK
             and ticks_diff(now, last_transmission_ms) >= BROADCAST_INTERVAL_MS
         ):
             send_unlock_frame("timer")
@@ -100,7 +119,8 @@ def run():
 try:
     run()
 except KeyboardInterrupt:
-    transmitter.off()
+    if transmitter is not None:
+        transmitter.off()
     attraction_output.off()
     status_led.off()
     print("Base station stopped")

@@ -11,6 +11,7 @@ using namespace BadgeProtocol;
 static_assert(
     STATION_NUMBER >= MIN_STATION_NUMBER && STATION_NUMBER <= MAX_STATION_NUMBER,
     "STATION_NUMBER must be in the range 1..5");
+static_assert(isValidStationRole(STATION_ROLE), "MFOC_STATION_ROLE is invalid");
 
 namespace {
 
@@ -54,6 +55,30 @@ void printReceivedFrame(uint16_t address, uint8_t command) {
     Serial.println(command, HEX);
 }
 
+void doSomething(uint16_t address, uint8_t command) {
+    // Receive-only station extension point. Replace this serial stub with the
+    // attraction-specific action while preserving the NEC receive path.
+    Serial.print(F("TODO doSomething address=0x"));
+    Serial.print(address, HEX);
+    Serial.print(F(" command=0x"));
+    Serial.println(command, HEX);
+}
+
+void printStationRole() {
+    Serial.print(F("Role: "));
+    switch (STATION_ROLE) {
+        case StationRole::ReceiveOnly:
+            Serial.println(F("receive only"));
+            break;
+        case StationRole::ReceiveEvaluateUnlock:
+            Serial.println(F("receive, evaluate, unlock"));
+            break;
+        case StationRole::TransmitUnlock:
+            Serial.println(F("transmit unlock only"));
+            break;
+    }
+}
+
 }  // namespace
 
 void baseStationSetup() {
@@ -65,29 +90,31 @@ void baseStationSetup() {
     Serial.begin(115200);
     delay(250);
     Serial.println(F("MFOC badge base station alpha - Arduino"));
-    Serial.print(F("IR RX D"));
-    Serial.print(IR_RECEIVER_PIN);
-    Serial.print(F(", IR TX D"));
-    Serial.print(IR_TRANSMITTER_PIN);
-    Serial.print(F(", attraction D"));
+    Serial.print(F("Attraction D"));
     Serial.println(ATTRACTION_TRIGGER_PIN);
 
-    IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
-    IrSender.begin(IR_TRANSMITTER_PIN);
+    if (roleUsesReceiver(STATION_ROLE)) {
+        Serial.print(F("IR RX D"));
+        Serial.println(IR_RECEIVER_PIN);
+        IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
+    }
+    if (roleUsesTransmitter(STATION_ROLE)) {
+        Serial.print(F("IR TX D"));
+        Serial.println(IR_TRANSMITTER_PIN);
+        IrSender.begin(IR_TRANSMITTER_PIN);
+    }
 
-    if (STATION_MODE == StationMode::ContinuousBroadcast) {
-        Serial.println(F("Mode: continuous broadcast"));
+    printStationRole();
+    if (STATION_ROLE == StationRole::TransmitUnlock) {
         // Cause the first frame to be sent immediately.
         lastTransmissionMs = millis() - BROADCAST_INTERVAL_MS;
-    } else {
-        Serial.println(F("Mode: triggered response"));
     }
 }
 
 void baseStationLoop() {
     const unsigned long now = millis();
 
-    if (IrReceiver.decode()) {
+    if (roleUsesReceiver(STATION_ROLE) && IrReceiver.decode()) {
         const auto& frame = IrReceiver.decodedIRData;
         if (frame.protocol == NEC && !(frame.flags & IRDATA_FLAGS_IS_REPEAT)) {
             const uint16_t address = static_cast<uint16_t>(frame.address);
@@ -95,12 +122,15 @@ void baseStationLoop() {
             printReceivedFrame(address, command);
 
             const bool ready = (now - lastTransmissionMs) >= RESPONSE_COOLDOWN_MS;
-            const bool shouldRespond =
-                STATION_MODE == StationMode::TriggeredResponse &&
-                isBadgeTriggerCommand(command) && ready;
+            const bool shouldRespond = shouldTransmitUnlock(
+                STATION_ROLE,
+                isBadgeTriggerCommand(command),
+                ready);
 
             IrReceiver.resume();
-            if (shouldRespond) {
+            if (STATION_ROLE == StationRole::ReceiveOnly) {
+                doSomething(address, command);
+            } else if (shouldRespond) {
                 sendUnlockFrame(F("badge trigger"));
             }
         } else {
@@ -108,7 +138,7 @@ void baseStationLoop() {
         }
     }
 
-    if (STATION_MODE == StationMode::ContinuousBroadcast &&
+    if (STATION_ROLE == StationRole::TransmitUnlock &&
         (now - lastTransmissionMs) >= BROADCAST_INTERVAL_MS) {
         sendUnlockFrame(F("timer"));
     }

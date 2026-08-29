@@ -6,6 +6,14 @@ This folder is the source of truth for the base-station project.
 
 - [`arduino/`](arduino/) — Arduino C++ for Uno/Nano using Arduino-IRremote.
 - [`pico/`](pico/) — MicroPython for Raspberry Pi Pico.
+- [`stations/`](stations/) — isolated, ready-to-load implementations for
+  specific physical stations.
+
+## Specific stations
+
+| Station | Platform | Locked address | Trigger and behavior |
+|---|---|---:|---|
+| [Station 1](stations/station-01-pico-button-unlock/) | Raspberry Pi Pico | `0xFB21` | Button press sends unlock command `0x07`; idle and held-button states do not transmit. |
 
 Both implementations provide:
 

@@ -8,15 +8,10 @@ constexpr uint16_t STATION_ADDRESS = 0xFB28U;
 constexpr uint8_t UNLOCK_COMMAND = 0x07U;
 constexpr uint16_t MIN_USABLE_BASELINE = 200U;
 constexpr uint32_t CALIBRATION_MS = 1000UL;
-constexpr uint32_t STEP_HOLD_MS = 1000UL;
-constexpr uint32_t GAME_TIMEOUT_MS = 45000UL;
-
-enum ShadowStep : uint8_t {
-    STEP_COVER_FIRST = 0U,
-    STEP_UNCOVER = 1U,
-    STEP_COVER_SECOND = 2U,
-    STEP_COMPLETE = 3U,
-};
+constexpr uint8_t MIN_GAME_EVENTS = 3U;
+constexpr uint8_t MAX_GAME_EVENTS = 6U;
+constexpr uint32_t MIN_EVENT_HOLD_MS = 1000UL;
+constexpr uint32_t MAX_EVENT_HOLD_MS = 4000UL;
 
 constexpr uint32_t encodeNecFrame(uint16_t address, uint8_t command) {
     return static_cast<uint32_t>(address) |
@@ -42,28 +37,22 @@ constexpr uint16_t lightThreshold(uint16_t baseline) {
         (static_cast<uint32_t>(baseline) * 80UL) / 100UL);
 }
 
-constexpr bool expectsShadow(ShadowStep step) {
-    return step == STEP_COVER_FIRST || step == STEP_COVER_SECOND;
-}
-
-constexpr bool sensorMatchesStep(
-    ShadowStep step,
+constexpr bool sensorMatchesExpectation(
+    bool expectsShadow,
     uint16_t sensorReading,
     uint16_t coveredThreshold,
     uint16_t uncoveredThreshold) {
-    return expectsShadow(step)
+    return expectsShadow
         ? sensorReading <= coveredThreshold
         : sensorReading >= uncoveredThreshold;
 }
 
-constexpr bool shouldAdvanceStep(bool sensorMatches, uint32_t stableDurationMs) {
-    return sensorMatches && stableDurationMs >= STEP_HOLD_MS;
+constexpr bool isEventCountValid(uint8_t eventCount) {
+    return eventCount >= MIN_GAME_EVENTS && eventCount <= MAX_GAME_EVENTS;
 }
 
-constexpr ShadowStep nextStep(ShadowStep step) {
-    return step == STEP_COVER_FIRST
-        ? STEP_UNCOVER
-        : (step == STEP_UNCOVER ? STEP_COVER_SECOND : STEP_COMPLETE);
+constexpr bool isEventDurationValid(uint32_t durationMs) {
+    return durationMs >= MIN_EVENT_HOLD_MS && durationMs <= MAX_EVENT_HOLD_MS;
 }
 
 }  // namespace Station04

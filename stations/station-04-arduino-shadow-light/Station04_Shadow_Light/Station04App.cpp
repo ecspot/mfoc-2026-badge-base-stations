@@ -11,13 +11,16 @@ namespace {
 
 constexpr uint8_t IR_RECEIVER_PIN = 2U;
 constexpr uint8_t IR_TRANSMITTER_PIN = 3U;
-constexpr uint8_t ILLUMINATION_LED_PIN = 5U;
-constexpr uint8_t GUIDE_LED_PIN = 6U;
+constexpr uint8_t GREEN_STATUS_LED_PIN = 5U;
+constexpr uint8_t BLUE_GUIDE_LED_PIN = 6U;
 constexpr uint8_t LIGHT_SENSOR_PIN = A0;
 constexpr uint8_t STATUS_LED_PIN = LED_BUILTIN;
 
 constexpr uint8_t FULL_FRAME_TRANSMISSIONS = 3U;
 constexpr unsigned long BETWEEN_FRAMES_MS = 120UL;
+constexpr unsigned long READY_BLINK_MS = 200UL;
+constexpr unsigned long SUCCESS_BLINK_MS = 250UL;
+constexpr unsigned long SUCCESS_DURATION_MS = 5000UL;
 
 // LDR wiring: 5 V -> LDR -> A0 -> 10 kΩ -> GND. Brighter means higher ADC.
 enum RuntimePhase : uint8_t {
@@ -27,19 +30,21 @@ enum RuntimePhase : uint8_t {
 };
 
 RuntimePhase phase = PHASE_IDLE;
-unsigned long gameStartedAtMs = 0UL;
 unsigned long calibrationStartedAtMs = 0UL;
 uint32_t calibrationTotal = 0UL;
 uint32_t calibrationSamples = 0UL;
 uint16_t coveredThreshold = 0U;
 uint16_t uncoveredThreshold = 0U;
-ShadowStep currentStep = STEP_COVER_FIRST;
+uint8_t currentEvent = 0U;
+uint8_t eventCount = 0U;
+bool eventExpectsShadow = false;
+unsigned long eventHoldMs = 0UL;
 bool sensorStateMatching = false;
 unsigned long sensorStateSinceMs = 0UL;
 
 void setAllOutputsLow() {
-    digitalWrite(ILLUMINATION_LED_PIN, LOW);
-    digitalWrite(GUIDE_LED_PIN, LOW);
+    digitalWrite(GREEN_STATUS_LED_PIN, LOW);
+    digitalWrite(BLUE_GUIDE_LED_PIN, LOW);
     digitalWrite(STATUS_LED_PIN, LOW);
 }
 
@@ -57,32 +62,58 @@ void printFrame(uint16_t address, uint8_t command) {
     Serial.println(command, HEX);
 }
 
-void setStepPrompt(ShadowStep step) {
-    sensorStateMatching = false;
-    digitalWrite(GUIDE_LED_PIN, expectsShadow(step) ? LOW : HIGH);
+void pulseLed(uint8_t pin, unsigned long durationMs) {
+    digitalWrite(pin, HIGH);
+    delay(durationMs);
+    digitalWrite(pin, LOW);
+    delay(durationMs);
+}
 
-    if (step == STEP_COVER_FIRST) {
-        Serial.println(F("STEP 1/3: cover the light sensor for one second"));
-    } else if (step == STEP_UNCOVER) {
-        Serial.println(F("STEP 2/3: uncover the light sensor for one second"));
-    } else if (step == STEP_COVER_SECOND) {
-        Serial.println(F("STEP 3/3: cover the light sensor for one second"));
+void signalReady() {
+    setAllOutputsLow();
+    for (uint8_t cycle = 0U; cycle < 2U; ++cycle) {
+        pulseLed(BLUE_GUIDE_LED_PIN, READY_BLINK_MS);
+        pulseLed(GREEN_STATUS_LED_PIN, READY_BLINK_MS);
     }
+}
+
+void signalSuccess() {
+    setAllOutputsLow();
+    const uint8_t blinkCount = static_cast<uint8_t>(
+        SUCCESS_DURATION_MS / (SUCCESS_BLINK_MS * 2UL));
+    for (uint8_t blink = 0U; blink < blinkCount; ++blink) {
+        pulseLed(GREEN_STATUS_LED_PIN, SUCCESS_BLINK_MS);
+    }
+}
+
+void setEventPrompt() {
+    sensorStateMatching = false;
+    eventHoldMs = static_cast<unsigned long>(
+        random(MIN_EVENT_HOLD_MS, MAX_EVENT_HOLD_MS + 1UL));
+    digitalWrite(GREEN_STATUS_LED_PIN, LOW);
+    digitalWrite(BLUE_GUIDE_LED_PIN, eventExpectsShadow ? HIGH : LOW);
+
+    Serial.print(F("EVENT "));
+    Serial.print(currentEvent + 1U);
+    Serial.print('/');
+    Serial.print(eventCount);
+    Serial.print(eventExpectsShadow ? F(": LED ON - hide sensor for ")
+                                    : F(": LED OFF - uncover sensor for "));
+    Serial.print(eventHoldMs);
+    Serial.println(F(" ms"));
 }
 
 void armStation(unsigned long now) {
     phase = PHASE_CALIBRATING;
-    gameStartedAtMs = now;
     calibrationStartedAtMs = now;
     calibrationTotal = 0UL;
     calibrationSamples = 0UL;
-    currentStep = STEP_COVER_FIRST;
     sensorStateMatching = false;
 
-    digitalWrite(ILLUMINATION_LED_PIN, HIGH);
-    digitalWrite(GUIDE_LED_PIN, HIGH);
+    digitalWrite(GREEN_STATUS_LED_PIN, HIGH);
+    digitalWrite(BLUE_GUIDE_LED_PIN, HIGH);
     digitalWrite(STATUS_LED_PIN, LOW);
-    Serial.println(F("ARMED: leave sensor uncovered for one-second calibration"));
+    Serial.println(F("SAMPLING: both LEDs on; leave sensor uncovered"));
 }
 
 void sendUnlockFrames() {
@@ -93,7 +124,6 @@ void sendUnlockFrames() {
     Serial.print(STATION_ADDRESS, HEX);
     Serial.print(F(" command=0x"));
     Serial.println(UNLOCK_COMMAND, HEX);
-
     for (uint8_t frameIndex = 0U;
          frameIndex < FULL_FRAME_TRANSMISSIONS;
          ++frameIndex) {
@@ -105,24 +135,25 @@ void sendUnlockFrames() {
     IrReceiver.resume();
 }
 
-void completeStep(unsigned long now) {
+void completeEvent() {
     digitalWrite(STATUS_LED_PIN, HIGH);
     delay(100);
     digitalWrite(STATUS_LED_PIN, LOW);
 
-    currentStep = nextStep(currentStep);
+    ++currentEvent;
     sensorStateMatching = false;
-    sensorStateSinceMs = now;
 
-    if (currentStep == STEP_COMPLETE) {
-        Serial.println(F("SUCCESS: shadow sequence complete"));
+    if (currentEvent >= eventCount) {
+        Serial.println(F("SUCCESS: all randomized light events complete"));
+        signalSuccess();
         sendUnlockFrames();
         delay(250);
         disarmStation(F("success; waiting for next badge"));
         return;
     }
 
-    setStepPrompt(currentStep);
+    eventExpectsShadow = !eventExpectsShadow;
+    setEventPrompt();
 }
 
 void updateCalibration(unsigned long now) {
@@ -139,7 +170,10 @@ void updateCalibration(unsigned long now) {
     Serial.println(baseline);
 
     if (!isCalibrationUsable(baseline)) {
-        disarmStation(F("calibration too dim; improve illumination and retry"));
+        Serial.println(F("Calibration too dim; sampling again with both LEDs on"));
+        calibrationStartedAtMs = now;
+        calibrationTotal = 0UL;
+        calibrationSamples = 0UL;
         return;
     }
 
@@ -150,23 +184,33 @@ void updateCalibration(unsigned long now) {
     Serial.print(F(", uncovered >= "));
     Serial.println(uncoveredThreshold);
 
+    digitalWrite(GREEN_STATUS_LED_PIN, LOW);
+    digitalWrite(BLUE_GUIDE_LED_PIN, LOW);
+    Serial.println(F("Calibration complete; signaling ready"));
+    signalReady();
+
+    eventCount = static_cast<uint8_t>(random(MIN_GAME_EVENTS, MAX_GAME_EVENTS + 1U));
+    currentEvent = 0U;
+    eventExpectsShadow = random(0L, 2L) == 1L;
     phase = PHASE_PLAYING;
-    currentStep = STEP_COVER_FIRST;
-    setStepPrompt(currentStep);
+    setEventPrompt();
 }
 
 void updateGame(unsigned long now) {
     const uint16_t reading = static_cast<uint16_t>(analogRead(LIGHT_SENSOR_PIN));
-    const bool matches = sensorMatchesStep(
-        currentStep,
+    const bool matches = sensorMatchesExpectation(
+        eventExpectsShadow,
         reading,
         coveredThreshold,
         uncoveredThreshold);
 
     if (!matches) {
+        digitalWrite(GREEN_STATUS_LED_PIN, LOW);
         sensorStateMatching = false;
         return;
     }
+
+    digitalWrite(GREEN_STATUS_LED_PIN, HIGH);
 
     if (!sensorStateMatching) {
         sensorStateMatching = true;
@@ -174,8 +218,8 @@ void updateGame(unsigned long now) {
         return;
     }
 
-    if (shouldAdvanceStep(true, now - sensorStateSinceMs)) {
-        completeStep(now);
+    if ((now - sensorStateSinceMs) >= eventHoldMs) {
+        completeEvent();
     }
 }
 
@@ -207,30 +251,26 @@ void pollBadge(unsigned long now) {
 }  // namespace
 
 void station04Setup() {
-    pinMode(ILLUMINATION_LED_PIN, OUTPUT);
-    pinMode(GUIDE_LED_PIN, OUTPUT);
+    pinMode(GREEN_STATUS_LED_PIN, OUTPUT);
+    pinMode(BLUE_GUIDE_LED_PIN, OUTPUT);
     pinMode(STATUS_LED_PIN, OUTPUT);
     setAllOutputsLow();
 
     Serial.begin(115200);
     delay(250);
+    randomSeed(static_cast<unsigned long>(analogRead(A1)) ^ micros());
     Serial.println(F("MFOC Station 4 - Arduino shadow-light game"));
     Serial.println(F("Locked address=0xFB28 command=0x07"));
-    Serial.println(F("IR RX D2, IR TX D3, lamp D5, guide D6, LDR A0"));
+    Serial.println(F("Green status D5, blue guide D6, LDR A0"));
 
     IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
     IrSender.begin(IR_TRANSMITTER_PIN);
-    Serial.println(F("Station idle: waiting for badge"));
+    Serial.println(F("Station idle; waiting for badge trigger"));
 }
 
 void station04Loop() {
     const unsigned long now = millis();
     pollBadge(now);
-
-    if (phase != PHASE_IDLE && (now - gameStartedAtMs) >= GAME_TIMEOUT_MS) {
-        disarmStation(F("45-second interaction timeout"));
-        return;
-    }
 
     if (phase == PHASE_CALIBRATING) {
         updateCalibration(now);

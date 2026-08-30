@@ -1,6 +1,6 @@
-"""Pure protocol and distance-game logic for the Pico ultrasonic variant."""
+"""Pure protocol and game logic for Station 6 Pico ultrasonic distance code."""
 
-STATION_ADDRESS = 0xFB30
+STATION_ADDRESS = 0xFB40
 UNLOCK_COMMAND = 0x07
 HOLD_MS = 750
 

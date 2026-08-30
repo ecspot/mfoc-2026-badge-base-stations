@@ -1,16 +1,16 @@
-# Station 5B — Pico Ultrasonic Distance Code
+# Station 6 — Pico Ultrasonic Distance Code
 
 Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit game.
-It is an alternative Station 5 deployment.
 
-## Identity and badge limitation
+## Identity
 
-- Address: **`0xFB30`**.
+- Address: **`0xFB40`**.
 - Unlock command: **`0x07`**.
-- Extended-NEC frame: **`0xF807FB30`**.
+- Extended-NEC frame: **`0xF807FB40`**.
 
-Station 5A, 5B, and 5C share achievement 5 because the badge exposes only five
-one-hot achievement bits.
+This is an independent Station 6 deployment. The badge firmware flashed for the
+event must include the registered Station 6 achievement address; badge firmware
+is not modified by this repository.
 
 ## Game
 
@@ -19,7 +19,7 @@ one-hot achievement bits.
 3. The matching LED identifies the requested zone.
 4. The player holds a hand continuously in the zone for 750 ms.
 5. Leaving the zone or entering a safety gap resets only the current hold.
-6. Completing all three targets sends three full Station 5 unlock frames.
+6. Completing all three targets sends three full Station 6 unlock frames.
 
 Distance zones:
 

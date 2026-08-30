@@ -4,15 +4,21 @@
 
 namespace BadgeProtocol {
 
-constexpr uint16_t UNLOCK_ADDRESS_BASE = 0xFB20;
 constexpr uint8_t UNLOCK_COMMAND = 0x07;
 constexpr uint8_t MIN_STATION_NUMBER = 1;
-constexpr uint8_t MAX_STATION_NUMBER = 5;
+constexpr uint8_t MAX_STATION_NUMBER = 7;
+constexpr uint16_t UNLOCK_ADDRESSES[MAX_STATION_NUMBER] = {
+    0xFB21,
+    0xFB22,
+    0xFB24,
+    0xFB28,
+    0xFB30,
+    0xFB40,
+    0xFB80,
+};
 
 constexpr uint16_t makeUnlockAddress(uint8_t stationNumber) {
-    return static_cast<uint16_t>(
-        UNLOCK_ADDRESS_BASE |
-        (static_cast<uint16_t>(1U) << (stationNumber - 1U)));
+    return UNLOCK_ADDRESSES[stationNumber - 1U];
 }
 
 constexpr bool isBadgeTriggerCommand(uint8_t command) {

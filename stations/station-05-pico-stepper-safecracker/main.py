@@ -1,4 +1,4 @@
-"""MFOC Station 5 variant: Pico stepper safecracker."""
+"""MFOC Station 5: Pico stepper safecracker."""
 
 from machine import Pin
 from random import getrandbits
@@ -272,7 +272,7 @@ def poll_badge(now_ms):
 def run():
     blank_display()
     set_feedback()
-    print("MFOC Station 5 variant - Pico stepper safecracker")
+    print("MFOC Station 5 - Pico stepper safecracker")
     print("Locked address=0xFB30 command=0x07")
     print("Station idle: waiting for badge")
 

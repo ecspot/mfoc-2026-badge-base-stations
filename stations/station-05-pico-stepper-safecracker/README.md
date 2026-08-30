@@ -1,17 +1,12 @@
-# Station 5A — Pico Stepper Safecracker
+# Station 5 — Pico Stepper Safecracker
 
 Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit game.
-It is one of three alternative Station 5 deployments.
 
-## Identity and badge limitation
+## Identity
 
 - Address: **`0xFB30`**.
 - Unlock command: **`0x07`**.
 - Extended-NEC frame: **`0xF807FB30`**.
-
-The badge protocol exposes only five one-hot achievement bits. Station 5A, 5B,
-and 5C therefore all unlock achievement 5 and are alternatives, not distinct
-simultaneous badge achievements.
 
 ## Game
 

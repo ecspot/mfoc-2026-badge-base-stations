@@ -1,4 +1,4 @@
-"""MFOC Station 5 variant: Pico ultrasonic distance code."""
+"""MFOC Station 6: Pico ultrasonic distance code."""
 
 from machine import Pin, time_pulse_us
 from random import getrandbits
@@ -163,8 +163,13 @@ def poll_badge(now_ms):
 def run():
     trigger.off()
     all_leds_off()
-    print("MFOC Station 5 variant - Pico ultrasonic distance code")
-    print("Locked address=0xFB30 command=0x07")
+    print("MFOC Station 6 - Pico ultrasonic distance code")
+    print(
+        "Locked address=0x{:04X} command=0x{:02X}".format(
+            STATION_ADDRESS,
+            UNLOCK_COMMAND,
+        )
+    )
     print("Station idle: waiting for badge")
 
     while True:

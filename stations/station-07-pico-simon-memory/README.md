@@ -1,16 +1,16 @@
-# Station 5C — Pico Simon Memory
+# Station 7 — Pico Simon Memory
 
 Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit game.
-It is an alternative Station 5 deployment.
 
-## Identity and badge limitation
+## Identity
 
-- Address: **`0xFB30`**.
+- Address: **`0xFB80`**.
 - Unlock command: **`0x07`**.
-- Extended-NEC frame: **`0xF807FB30`**.
+- Extended-NEC frame: **`0xF807FB80`**.
 
-Station 5A, 5B, and 5C share achievement 5 because the badge exposes only five
-one-hot achievement bits.
+This is an independent Station 7 deployment. The badge firmware flashed for the
+event must include the registered Station 7 achievement address; badge firmware
+is not modified by this repository.
 
 ## Game
 
@@ -19,7 +19,7 @@ one-hot achievement bits.
 3. The player repeats each round with the four matching buttons.
 4. A wrong button flashes all lights with a low error tone and generates a new
    sequence from round one without transmitting.
-5. Completing all four rounds flashes success and sends three full Station 5
+5. Completing all four rounds flashes success and sends three full Station 7
    unlock frames.
 
 The game times out after 60 seconds without transmitting. Buttons use 30 ms

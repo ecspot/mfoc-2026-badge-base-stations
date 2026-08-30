@@ -1,6 +1,6 @@
-"""Pure protocol and game logic for the Pico Simon variant."""
+"""Pure protocol and game logic for Station 7 Pico Simon memory."""
 
-STATION_ADDRESS = 0xFB30
+STATION_ADDRESS = 0xFB80
 UNLOCK_COMMAND = 0x07
 ROUND_LENGTHS = (3, 4, 5, 6)
 COLOR_COUNT = 4
@@ -61,7 +61,7 @@ def sequence_from_random_values(values):
 class SimonGame:
     def __init__(self, sequence):
         if len(sequence) != ROUND_LENGTHS[-1]:
-            raise ValueError("Simon sequence must contain six colors")
+            raise ValueError("Simon sequence must contain six steps")
         if any(color < 0 or color >= COLOR_COUNT for color in sequence):
             raise ValueError("colors must be in the range 0..3")
         self.sequence = tuple(sequence)

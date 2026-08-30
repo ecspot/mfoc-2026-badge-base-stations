@@ -1,4 +1,4 @@
-"""MFOC Station 5 variant: Pico Simon memory game."""
+"""MFOC Station 7: Pico Simon memory game."""
 
 from machine import Pin, PWM
 from random import getrandbits
@@ -190,8 +190,13 @@ def poll_badge(now_ms):
 
 def run():
     all_outputs_off()
-    print("MFOC Station 5 variant - Pico Simon memory")
-    print("Locked address=0xFB30 command=0x07")
+    print("MFOC Station 7 - Pico Simon memory")
+    print(
+        "Locked address=0x{:04X} command=0x{:02X}".format(
+            STATION_ADDRESS,
+            UNLOCK_COMMAND,
+        )
+    )
     print("Station idle: waiting for badge")
 
     while True:

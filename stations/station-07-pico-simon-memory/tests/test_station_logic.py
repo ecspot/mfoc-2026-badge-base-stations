@@ -25,10 +25,10 @@ from station_logic import (
 
 
 class SimonProtocolTests(unittest.TestCase):
-    def test_station_five_variant_identity_is_locked(self):
-        self.assertEqual(STATION_ADDRESS, 0xFB30)
+    def test_station_seven_identity_is_locked(self):
+        self.assertEqual(STATION_ADDRESS, 0xFB80)
         self.assertEqual(UNLOCK_COMMAND, 0x07)
-        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB30)
+        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB80)
 
     def test_four_rounds_grow_from_three_to_six(self):
         self.assertEqual(ROUND_LENGTHS, (3, 4, 5, 6))

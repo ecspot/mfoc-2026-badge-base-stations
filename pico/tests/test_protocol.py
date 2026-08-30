@@ -11,7 +11,17 @@ class ProtocolTests(unittest.TestCase):
     def test_unlock_addresses_are_one_hot(self):
         self.assertEqual(make_unlock_address(1), 0xFB21)
         self.assertEqual(make_unlock_address(2), 0xFB22)
+        self.assertEqual(make_unlock_address(3), 0xFB24)
+        self.assertEqual(make_unlock_address(4), 0xFB28)
         self.assertEqual(make_unlock_address(5), 0xFB30)
+        self.assertEqual(make_unlock_address(6), 0xFB40)
+        self.assertEqual(make_unlock_address(7), 0xFB80)
+
+    def test_unregistered_station_numbers_are_rejected(self):
+        with self.assertRaises(ValueError):
+            make_unlock_address(0)
+        with self.assertRaises(ValueError):
+            make_unlock_address(8)
 
     def test_badge_trigger_commands(self):
         self.assertTrue(is_badge_trigger_command(0x01))

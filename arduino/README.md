@@ -99,7 +99,7 @@ Use this path without PlatformIO:
 4. In the same file, set the one-hot message station:
 
    ```cpp
-   constexpr uint8_t STATION_NUMBER = 1;  // 1..5
+   constexpr uint8_t STATION_NUMBER = 1;  // 1..7
    ```
 
 5. Select **Tools > Board > Arduino Uno**, or the correct ATmega328P Nano

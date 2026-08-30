@@ -78,7 +78,19 @@ class ReactionGameTests(unittest.TestCase):
             game.update(now_ms=2750, button_pressed=True),
             EVENT_SUCCESS,
         )
+        self.assertEqual(game.last_reaction_ms, 750)
         self.assertEqual(game.state, STATE_IDLE)
+
+    def test_press_after_reaction_deadline_is_missed(self):
+        game = ReactionGame()
+        game.arm(now_ms=0, wait_ms=2000)
+        game.update(now_ms=2000, button_pressed=False)
+
+        self.assertEqual(
+            game.update(now_ms=2751, button_pressed=True),
+            EVENT_MISSED,
+        )
+        self.assertIsNone(game.last_reaction_ms)
 
     def test_press_before_signal_is_false_start(self):
         game = ReactionGame()

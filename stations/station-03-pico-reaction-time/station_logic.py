@@ -76,6 +76,7 @@ class ReactionGame:
         self.state = STATE_IDLE
         self._signal_at_ms = 0
         self._game_deadline_ms = 0
+        self.last_reaction_ms = None
 
     @staticmethod
     def _validate_wait(wait_ms):
@@ -90,6 +91,7 @@ class ReactionGame:
     def _start_attempt(self, now_ms, wait_ms):
         self._validate_wait(wait_ms)
         self._signal_at_ms = self._ticks_add(now_ms, wait_ms)
+        self.last_reaction_ms = None
         self.state = STATE_WAITING
 
     def restart_attempt(self, now_ms, wait_ms):
@@ -122,6 +124,7 @@ class ReactionGame:
                 self.state = STATE_NEEDS_RESTART
                 return EVENT_MISSED
             if button_pressed:
+                self.last_reaction_ms = elapsed_ms
                 self.state = STATE_IDLE
                 return EVENT_SUCCESS
 

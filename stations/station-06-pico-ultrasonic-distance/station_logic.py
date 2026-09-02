@@ -3,6 +3,8 @@
 STATION_ADDRESS = 0xFB40
 UNLOCK_COMMAND = 0x07
 HOLD_MS = 750
+MIN_TARGETS = 4
+MAX_TARGETS = 7
 
 ZONE_NEAR = "near"
 ZONE_MIDDLE = "middle"
@@ -36,21 +38,26 @@ def classify_distance_cm(distance_cm):
 
 
 def sequence_from_random_values(values):
+    values = tuple(values)
+    if len(values) < MAX_TARGETS + 1:
+        raise ValueError("eight random values are required")
+
+    target_count = MIN_TARGETS + values[0] % (MAX_TARGETS - MIN_TARGETS + 1)
     sequence = []
-    for value in values[:3]:
+    for value in values[1 : target_count + 1]:
         zone_index = value % len(ZONES)
         if sequence and ZONES[zone_index] == sequence[-1]:
             zone_index = (zone_index + 1) % len(ZONES)
         sequence.append(ZONES[zone_index])
-    if len(sequence) != 3:
-        raise ValueError("three random values are required")
     return tuple(sequence)
 
 
 class DistanceGame:
     def __init__(self, sequence, ticks_diff_fn=None):
-        if len(sequence) != 3 or any(zone not in ZONES for zone in sequence):
-            raise ValueError("sequence must contain three valid zones")
+        if not MIN_TARGETS <= len(sequence) <= MAX_TARGETS or any(
+            zone not in ZONES for zone in sequence
+        ):
+            raise ValueError("sequence must contain four to seven valid zones")
         self.sequence = tuple(sequence)
         self._ticks_diff = ticks_diff_fn or (lambda left, right: left - right)
         self.step_index = 0

@@ -8,8 +8,8 @@ constexpr uint16_t STATION_ADDRESS = 0xFB22U;
 constexpr uint8_t UNLOCK_COMMAND = 0x07U;
 constexpr uint8_t SERVO_MIN_DEGREES = 20U;
 constexpr uint8_t SERVO_MAX_DEGREES = 160U;
-constexpr uint8_t TARGET_ZONE_MIN_DEGREES = 80U;
-constexpr uint8_t TARGET_ZONE_MAX_DEGREES = 100U;
+constexpr uint8_t TARGET_ZONE_MIN_DEGREES = 85U;
+constexpr uint8_t TARGET_ZONE_MAX_DEGREES = 95U;
 constexpr uint16_t BUTTON_DEBOUNCE_MS = 30U;
 
 constexpr uint32_t encodeNecFrame(uint16_t address, uint8_t command) {

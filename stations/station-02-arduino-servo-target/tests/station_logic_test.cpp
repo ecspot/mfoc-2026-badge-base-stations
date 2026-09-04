@@ -15,11 +15,11 @@ static_assert(isBadgeTriggerCommand(0x2FU), "Last report command must arm Statio
 static_assert(!isBadgeTriggerCommand(0x00U), "Unrecognized command must not arm Station 2");
 static_assert(!isBadgeTriggerCommand(0x30U), "Out-of-range report must not arm Station 2");
 
-static_assert(!isTargetInZone(79U), "79 degrees must be outside the target zone");
-static_assert(isTargetInZone(80U), "80 degrees must be inside the target zone");
+static_assert(!isTargetInZone(84U), "84 degrees must be outside the target zone");
+static_assert(isTargetInZone(85U), "85 degrees must be inside the target zone");
 static_assert(isTargetInZone(90U), "90 degrees must be inside the target zone");
-static_assert(isTargetInZone(100U), "100 degrees must be inside the target zone");
-static_assert(!isTargetInZone(101U), "101 degrees must be outside the target zone");
+static_assert(isTargetInZone(95U), "95 degrees must be inside the target zone");
+static_assert(!isTargetInZone(96U), "96 degrees must be outside the target zone");
 
 static_assert(nextSweepPosition(90U, 1) == 91U, "Forward sweep must advance");
 static_assert(nextSweepDirection(90U, 1) == 1, "Forward direction must continue");

@@ -1,6 +1,7 @@
 #include "Station02App.h"
 
 #include <Arduino.h>
+#include <IRremote.hpp>
 #include <Servo.h>
 
 #include "StationLogic.h"
@@ -9,12 +10,17 @@ using namespace Station02;
 
 namespace {
 
+constexpr uint8_t IR_RECEIVER_PIN = 2U;
+constexpr uint8_t IR_TRANSMITTER_PIN = 3U;
 constexpr uint8_t SERVO_PIN = 5U;
 constexpr uint8_t BUTTON_PIN = 6U;
 constexpr uint8_t STATUS_LED_PIN = 7U;
 
 constexpr unsigned long SERVO_STEP_INTERVAL_MS = 12UL;
 constexpr unsigned long INTERACTION_TIMEOUT_MS = 30000UL;
+constexpr unsigned long SUCCESS_LED_MS = 3000UL;
+constexpr uint8_t FULL_FRAME_TRANSMISSIONS = 3U;
+constexpr unsigned long BETWEEN_FRAMES_MS = 120UL;
 
 Servo targetServo;
 bool stationArmed = false;
@@ -27,6 +33,13 @@ int8_t servoDirection = 1;
 bool buttonCandidatePressed = false;
 bool buttonPressReported = false;
 unsigned long buttonCandidateSinceMs = 0UL;
+
+void printFrame(uint16_t address, uint8_t command) {
+    Serial.print(F("RX NEC address=0x"));
+    Serial.print(address, HEX);
+    Serial.print(F(" command=0x"));
+    Serial.println(command, HEX);
+}
 
 void attachServo() {
     if (!servoAttached) {
@@ -57,19 +70,40 @@ void armStation(unsigned long now) {
     servoPositionDegrees = SERVO_MIN_DEGREES;
     servoDirection = 1;
 
-    buttonCandidatePressed = digitalRead(BUTTON_PIN) == LOW;
+    buttonCandidatePressed = digitalRead(BUTTON_PIN) == HIGH;
     buttonCandidateSinceMs = now;
     // If held at startup, require release before accepting a press.
     buttonPressReported = buttonCandidatePressed;
 
     Serial.print(F("D6 startup raw="));
-    Serial.println(buttonCandidatePressed ? F("LOW / pressed") : F("HIGH / released"));
+    Serial.println(buttonCandidatePressed ? F("HIGH / pressed") : F("LOW / released"));
 
     attachServo();
     targetServo.write(servoPositionDegrees);
-    digitalWrite(STATUS_LED_PIN, HIGH);
+    digitalWrite(STATUS_LED_PIN, LOW);
 
     Serial.println(F("Station armed: target sweeping; press in 85-95 degree zone"));
+}
+
+void sendUnlockFrames() {
+    detachServo();
+    digitalWrite(STATUS_LED_PIN, HIGH);
+
+    Serial.print(F("TX Station 2 unlock address=0x"));
+    Serial.print(STATION_ADDRESS, HEX);
+    Serial.print(F(" command=0x"));
+    Serial.println(UNLOCK_COMMAND, HEX);
+
+    for (uint8_t frameIndex = 0U;
+         frameIndex < FULL_FRAME_TRANSMISSIONS;
+         ++frameIndex) {
+        IrSender.sendNEC(STATION_ADDRESS, UNLOCK_COMMAND, 0);
+        if (frameIndex + 1U < FULL_FRAME_TRANSMISSIONS) {
+            delay(BETWEEN_FRAMES_MS);
+        }
+    }
+    delay(SUCCESS_LED_MS);
+    IrReceiver.resume();
 }
 
 void reportMiss() {
@@ -77,17 +111,14 @@ void reportMiss() {
     Serial.print(servoPositionDegrees);
     Serial.println(F(" degrees; release and try again"));
 
-    digitalWrite(STATUS_LED_PIN, LOW);
-    delay(100);
-    digitalWrite(STATUS_LED_PIN, HIGH);
 }
 
 void handleButtonPress() {
     if (isTargetInZone(servoPositionDegrees)) {
         Serial.print(F("SUCCESS position="));
         Serial.println(servoPositionDegrees);
-        Serial.println(F("BENCH TEST: IR unlock transmission disabled"));
-        disarmStation(F("success; reset to play again"));
+        sendUnlockFrames();
+        disarmStation(F("success; waiting for next badge"));
         return;
     }
 
@@ -95,12 +126,12 @@ void handleButtonPress() {
 }
 
 void updateButton(unsigned long now) {
-    const bool isPressed = digitalRead(BUTTON_PIN) == LOW;
+    const bool isPressed = digitalRead(BUTTON_PIN) == HIGH;
     if (isPressed != buttonCandidatePressed) {
         buttonCandidatePressed = isPressed;
         buttonCandidateSinceMs = now;
         Serial.print(F("D6 raw="));
-        Serial.println(isPressed ? F("LOW / pressed") : F("HIGH / released"));
+        Serial.println(isPressed ? F("HIGH / pressed") : F("LOW / released"));
         return;
     }
 
@@ -136,23 +167,53 @@ void updateServo(unsigned long now) {
     lastServoStepMs = now;
 }
 
+void pollBadge(unsigned long now) {
+    if (!IrReceiver.decode()) {
+        return;
+    }
+
+    const auto& frame = IrReceiver.decodedIRData;
+    const bool isCompleteNecFrame =
+        frame.protocol == NEC && !(frame.flags & IRDATA_FLAGS_IS_REPEAT);
+    const uint16_t address = static_cast<uint16_t>(frame.address);
+    const uint8_t command = static_cast<uint8_t>(frame.command);
+
+    if (isCompleteNecFrame) {
+        printFrame(address, command);
+    }
+    IrReceiver.resume();
+
+    if (isCompleteNecFrame && isBadgeTriggerCommand(command)) {
+        if (!stationArmed) {
+            armStation(now);
+        } else {
+            Serial.println(F("Station already armed; badge trigger ignored"));
+        }
+    }
+}
+
 }  // namespace
 
 void station02Setup() {
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_PIN, INPUT);
     pinMode(STATUS_LED_PIN, OUTPUT);
     digitalWrite(STATUS_LED_PIN, LOW);
 
     Serial.begin(115200);
     delay(250);
     Serial.println(F("MFOC Station 2 - Arduino servo target"));
-    Serial.println(F("BENCH TEST: IR disabled, servo D5, button D6, status D7"));
-    armStation(millis());
+    Serial.println(F("Locked address=0xFB22 command=0x07"));
+    Serial.println(F("IR RX D2, IR TX D3, servo D5, button D6, success D7"));
+
+    IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
+    IrSender.begin(IR_TRANSMITTER_PIN);
+    Serial.println(F("Station idle: waiting for badge"));
 }
 
 void station02Loop() {
     const unsigned long now = millis();
 
+    pollBadge(now);
     updateButton(now);
     updateServo(now);
 

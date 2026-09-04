@@ -1,8 +1,8 @@
 # Station 2 — Arduino Servo Target
 
-This is a self-contained, station-specific Arduino Uno R3 deployment. This
-temporary bench-test build starts automatically and does not initialize IR
-reception or transmission.
+This is a self-contained, station-specific Arduino Uno R3 deployment. It waits
+for a badge announcement, runs the servo target game, and transmits the Station
+2 unlock after success.
 
 ## Locked identity
 
@@ -13,17 +13,19 @@ reception or transmission.
 
 ## Interaction
 
-1. Resetting the Arduino arms the game automatically without a badge.
+1. The station waits idle until it receives a complete NEC badge advertisement
+   command `0x01` or report command `0x20`–`0x2F`.
 2. The servo attaches and sweeps a pointer from 20° to 160° and back at one
    degree every 12 ms.
 3. The player presses the button while the pointer is in the physically marked
    **85°–95° success zone**.
-4. A successful press reports the angle, transmits nothing, detaches the servo,
-   and waits for an Arduino reset.
+4. A successful press reports the angle, detaches the servo, lights the green
+   D7 LED, and transmits three Station 2 unlock frames. The green LED remains on
+   for three seconds before the station returns to idle.
 
-A press outside the marked zone flashes the status LED, prints the missed angle,
-and keeps the station armed. The player must release the button before trying
-again. A button already held when the game starts is ignored until released.
+A press outside the marked zone prints the missed angle and keeps the station
+armed; the green success LED remains off. The player must release the button
+before trying again. A button already held when the game starts is ignored until released.
 If no success occurs within 30 seconds, the station detaches the servo and
 returns to idle without transmitting.
 
@@ -34,8 +36,28 @@ returns to idle without transmitting.
 | TSOP98638 output | D2 | Receiver `OUT`, active-low demodulated signal |
 | LTE-4208 transmitter control | D3 | Transistor/MOSFET driver input |
 | Servo signal | D5 | Orange/yellow/white servo signal lead |
-| Player button | D6 | Normally-open button to GND; internal pull-up enabled |
-| Status LED | D7 | External LED through a 220–330 Ω resistor to GND |
+| Player button | D6 | Active-high switched 5 V input with 10 kΩ pull-down to GND |
+| Green success LED | D7 | External LED through a 220–330 Ω resistor to GND |
+
+### Illuminated player button
+
+The button input is active-high so the button can switch 5 V to both D6 and its
+internal LED. D6 must have an external 10 kΩ pull-down resistor so it reads LOW
+while released:
+
+```text
+Arduino 5 V ---- button switch ----+---- D6
+                                   |
+                                   +---- button LED anode
+                                   |
+                                  10 kΩ
+                                   |
+Arduino GND -----------------------+---- button LED cathode
+```
+
+If the button LED does not include a resistor rated for 5 V, add a 220–330 Ω
+series resistor in its LED branch. Do not place that LED resistor in the D6
+signal path.
 
 ### Servo power
 
@@ -57,9 +79,9 @@ connection.
 
 ### IR hardware
 
-The bench-test build does not initialize D2 or D3, so the IR receiver and
-transmitter are not required while testing the servo, button, and external D7
-status LED. Production firmware will restore the IR hardware and badge gating.
+The station receives badge announcements through D2 and transmits the Station 2
+unlock through D3. The D3 output should control an appropriate transistor or
+MOSFET driver for the IR LED rather than powering the emitter directly.
 
 The badge carrier discrepancy documented in the repository root still applies
 to physical receive testing. Confirm the actual badge carrier before treating
@@ -85,6 +107,7 @@ This workflow does not require PlatformIO:
    [`Station02_Servo_Target/Station02_Servo_Target.ino`](Station02_Servo_Target/Station02_Servo_Target.ino)
    in Arduino IDE.
 2. In **Tools > Manage Libraries**, install:
+   - **IRremote** by Armin Joachimsmeyer.
    - **Servo** by Arduino.
 3. Select **Arduino Uno** and select the serial port.
 4. Click **Verify**, then **Upload**.
@@ -110,22 +133,23 @@ platformio run --target upload
 platformio device monitor --baud 115200
 ```
 
-PlatformIO targets `uno`, installs Servo from `platformio.ini`, and
-compiles the same sketch sources used by Arduino IDE. IRremote is not required
-by the temporary bench build.
+PlatformIO targets `uno`, installs IRremote and Servo from `platformio.ini`, and
+compiles the same sketch sources used by Arduino IDE.
 
-## Bench test sequence
+## Test sequence
 
-1. Reset the station and confirm serial reports bench-test mode and immediately
-   arms the game.
-2. Confirm the external D7 status LED turns on and the servo begins sweeping.
+1. Reset the station and confirm it reports that it is waiting for a badge. The
+   servo and green D7 LED should remain off.
+2. Send a recognized badge announcement and confirm the servo begins sweeping
+   while D7 remains off.
 3. Press outside 85°–95° and confirm serial reports the missed angle while the
    game remains active.
 4. Release the button, then press inside 85°–95°.
-5. Confirm serial reports `SUCCESS` and that no IR transmission occurs.
-6. Confirm the servo detaches and the status LED turns off. Reset to play again.
-7. Reset and let the game run without succeeding; confirm the 30-second timeout
-   detaches the servo and turns the status LED off.
+5. Confirm serial reports `SUCCESS`, the servo detaches, D7 lights for three
+   seconds, and three unlock frames are transmitted.
+6. Confirm D7 turns off and the station waits for the next badge announcement.
+7. Start another game and let it run without succeeding; confirm the 30-second
+   timeout detaches the servo and leaves D7 off.
 
 ## Files
 

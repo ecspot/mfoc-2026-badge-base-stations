@@ -16,16 +16,17 @@ for a badge announcement, runs the servo target game, and transmits the Station
 1. The station waits idle until it receives a complete NEC badge advertisement
    command `0x01` or report command `0x20`–`0x2F`.
 2. The servo attaches and sweeps a pointer from 20° to 160° and back at one
-   degree every 12 ms.
+   degree every 9 ms.
 3. The player presses the button while the pointer is in the physically marked
    **85°–95° success zone**.
 4. A successful press reports the angle, detaches the servo, lights the green
    D7 LED, and transmits three Station 2 unlock frames. The green LED remains on
    for three seconds before the station returns to idle.
 
-A press outside the marked zone prints the missed angle and keeps the station
-armed; the green success LED remains off. The player must release the button
-before trying again. A button already held when the game starts is ignored until released.
+A press outside the marked zone pauses the servo for 250 ms, prints the missed
+angle, and keeps the station armed; the green success LED remains off. The
+player must release the button before trying again. A button already held when
+the game starts is ignored until released.
 If no success occurs within 30 seconds, the station detaches the servo and
 returns to idle without transmitting.
 
@@ -41,23 +42,23 @@ returns to idle without transmitting.
 
 ### Illuminated player button
 
-The button input is active-high so the button can switch 5 V to both D6 and its
-internal LED. D6 must have an external 10 kΩ pull-down resistor so it reads LOW
-while released:
+The button input is active-high. D6 reads HIGH when the button connects it to
+5 V and requires an external 10 kΩ pull-down so it reads LOW when released:
 
 ```text
-Arduino 5 V ---- button switch ----+---- D6
-                                   |
-                                   +---- button LED anode
+Arduino 5 V ---- button switch ----+---- Arduino D6
                                    |
                                   10 kΩ
                                    |
-Arduino GND -----------------------+---- button LED cathode
+Arduino GND -----------------------+
+
+Arduino 5 V ---- button LED anode
+Arduino GND ---- button LED cathode
 ```
 
 If the button LED does not include a resistor rated for 5 V, add a 220–330 Ω
-series resistor in its LED branch. Do not place that LED resistor in the D6
-signal path.
+series resistor in its LED branch. Keep that LED resistor out of the D6 signal
+path.
 
 ### Servo power
 
@@ -142,8 +143,8 @@ compiles the same sketch sources used by Arduino IDE.
    servo and green D7 LED should remain off.
 2. Send a recognized badge announcement and confirm the servo begins sweeping
    while D7 remains off.
-3. Press outside 85°–95° and confirm serial reports the missed angle while the
-   game remains active.
+3. Press outside 85°–95° and confirm the servo pauses for 250 ms and serial
+   reports the missed angle while the game remains active.
 4. Release the button, then press inside 85°–95°.
 5. Confirm serial reports `SUCCESS`, the servo detaches, D7 lights for three
    seconds, and three unlock frames are transmitted.

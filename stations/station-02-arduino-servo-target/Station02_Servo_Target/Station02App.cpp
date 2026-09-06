@@ -16,8 +16,9 @@ constexpr uint8_t SERVO_PIN = 5U;
 constexpr uint8_t BUTTON_PIN = 6U;
 constexpr uint8_t STATUS_LED_PIN = 7U;
 
-constexpr unsigned long SERVO_STEP_INTERVAL_MS = 12UL;
+constexpr unsigned long SERVO_STEP_INTERVAL_MS = 9UL;
 constexpr unsigned long INTERACTION_TIMEOUT_MS = 30000UL;
+constexpr unsigned long MISS_PAUSE_MS = 250UL;
 constexpr unsigned long SUCCESS_LED_MS = 3000UL;
 constexpr uint8_t FULL_FRAME_TRANSMISSIONS = 3U;
 constexpr unsigned long BETWEEN_FRAMES_MS = 120UL;
@@ -110,7 +111,7 @@ void reportMiss() {
     Serial.print(F("MISS position="));
     Serial.print(servoPositionDegrees);
     Serial.println(F(" degrees; release and try again"));
-
+    delay(MISS_PAUSE_MS);
 }
 
 void handleButtonPress() {
@@ -204,7 +205,6 @@ void station02Setup() {
     Serial.println(F("MFOC Station 2 - Arduino servo target"));
     Serial.println(F("Locked address=0xFB22 command=0x07"));
     Serial.println(F("IR RX D2, IR TX D3, servo D5, button D6, success D7"));
-
     IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
     IrSender.begin(IR_TRANSMITTER_PIN);
     Serial.println(F("Station idle: waiting for badge"));

@@ -16,6 +16,7 @@ constexpr uint8_t BLUE_GUIDE_LED_PIN = 6U;
 constexpr uint8_t LIGHT_SENSOR_PIN = A0;
 constexpr uint8_t STATUS_LED_PIN = LED_BUILTIN;
 
+constexpr bool BENCH_TEST_MODE = false;
 constexpr uint8_t FULL_FRAME_TRANSMISSIONS = 3U;
 constexpr unsigned long BETWEEN_FRAMES_MS = 120UL;
 constexpr unsigned long READY_BLINK_MS = 200UL;
@@ -146,9 +147,15 @@ void completeEvent() {
     if (currentEvent >= eventCount) {
         Serial.println(F("SUCCESS: all randomized light events complete"));
         signalSuccess();
-        sendUnlockFrames();
+        if (BENCH_TEST_MODE) {
+            Serial.println(F("BENCH TEST: IR unlock transmission disabled"));
+        } else {
+            sendUnlockFrames();
+        }
         delay(250);
-        disarmStation(F("success; waiting for next badge"));
+        disarmStation(BENCH_TEST_MODE
+            ? F("success; reset to play again")
+            : F("success; waiting for next badge"));
         return;
     }
 
@@ -260,17 +267,23 @@ void station04Setup() {
     delay(250);
     randomSeed(static_cast<unsigned long>(analogRead(A1)) ^ micros());
     Serial.println(F("MFOC Station 4 - Arduino shadow-light game"));
-    Serial.println(F("Locked address=0xFB28 command=0x07"));
     Serial.println(F("Green status D5, blue guide D6, LDR A0"));
-
-    IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
-    IrSender.begin(IR_TRANSMITTER_PIN);
-    Serial.println(F("Station idle; waiting for badge trigger"));
+    if (BENCH_TEST_MODE) {
+        Serial.println(F("BENCH TEST: IR disabled; starting automatically"));
+        armStation(millis());
+    } else {
+        Serial.println(F("Locked address=0xFB28 command=0x07"));
+        IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
+        IrSender.begin(IR_TRANSMITTER_PIN);
+        Serial.println(F("Station idle; waiting for badge trigger"));
+    }
 }
 
 void station04Loop() {
     const unsigned long now = millis();
-    pollBadge(now);
+    if (!BENCH_TEST_MODE) {
+        pollBadge(now);
+    }
 
     if (phase == PHASE_CALIBRATING) {
         updateCalibration(now);

@@ -16,6 +16,7 @@ from station_logic import (
     EVENT_SERIES_FAILED,
     EVENT_SUCCESS,
     EVENT_TIMEOUT,
+    GAME_TIMEOUT_MS,
     MAX_WAIT_MS,
     MIN_WAIT_MS,
     REACTION_WINDOW_MS,
@@ -58,6 +59,7 @@ class StationThreeProtocolTests(unittest.TestCase):
         self.assertEqual(REACTION_WINDOW_MS, 750)
         self.assertEqual(ROUNDS_REQUIRED, 3)
         self.assertEqual(TOTAL_SUCCESS_MS, 730)
+        self.assertEqual(GAME_TIMEOUT_MS, 90000)
 
     def test_random_wait_mapping_stays_inside_locked_range(self):
         self.assertEqual(wait_from_random_bits(0), 2000)
@@ -168,7 +170,7 @@ class ReactionGameTests(unittest.TestCase):
         game.arm(now_ms=100, wait_ms=5000)
 
         self.assertEqual(
-            game.update(now_ms=30100, button_pressed=False),
+            game.update(now_ms=90100, button_pressed=False),
             EVENT_TIMEOUT,
         )
         self.assertEqual(game.state, STATE_IDLE)

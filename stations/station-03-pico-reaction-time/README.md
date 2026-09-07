@@ -12,7 +12,7 @@ reaction-time challenge, and transmits the Station 3 unlock after success.
 
 ## Interaction
 
-1. The station waits for a recognized badge frame to start a 30-second game.
+1. The station waits for a recognized badge frame to start a 90-second game.
 2. The reaction LED blinks three times, then turns off.
 3. The reaction LED remains off for a random **2–5 seconds**.
 4. When the LED turns on, the player has up to 750 ms to register a reaction.
@@ -106,7 +106,7 @@ The tests lock:
 - random-delay bounds;
 - three measured reactions with a combined time strictly under 730 ms;
 - false starts and missed-window retries;
-- 30-second timeout;
+- 90-second timeout;
 - button debounce, held-button non-repeat, and release re-arming.
 
 ## Bench test sequence
@@ -124,7 +124,7 @@ The tests lock:
    transmitting.
 9. Confirm green turns off after three seconds and the station returns to idle.
 10. Send another badge frame and confirm a new game starts.
-11. Start again and do nothing; confirm the game times out after 30 seconds.
+11. Start again and do nothing; confirm the game times out after 90 seconds.
 
 Physical reaction timing, IR range, optical carrier compatibility, and badge
 unlock behavior remain hardware-validation steps.

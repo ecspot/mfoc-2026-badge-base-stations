@@ -10,7 +10,7 @@ using namespace BadgeProtocol;
 
 static_assert(
     STATION_NUMBER >= MIN_STATION_NUMBER && STATION_NUMBER <= MAX_STATION_NUMBER,
-    "STATION_NUMBER must be in the range 1..5");
+    "STATION_NUMBER must be in the range 1..7");
 static_assert(isValidStationRole(STATION_ROLE), "MFOC_STATION_ROLE is invalid");
 
 namespace {

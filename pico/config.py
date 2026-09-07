@@ -12,7 +12,7 @@ IR_TRANSMITTER_PIN = 17    # GP17, physical pin 22; transistor input
 ATTRACTION_TRIGGER_PIN = 18  # GP18, physical pin 24; logic pulse output
 STATUS_LED_PIN = "LED"
 
-STATION_NUMBER = 1  # Valid values: 1..5
+STATION_NUMBER = 1  # Valid values: 1..7
 
 STATION_ROLE = ROLE_RECEIVE_EVALUATE_UNLOCK
 

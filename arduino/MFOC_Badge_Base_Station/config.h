@@ -23,7 +23,7 @@ constexpr uint8_t IR_TRANSMITTER_PIN = 3;     // Drives IR LED transistor input
 constexpr uint8_t ATTRACTION_TRIGGER_PIN = 4; // Logic pulse to animation controller
 constexpr uint8_t STATUS_LED_PIN = LED_BUILTIN;
 
-// Station 1 unlocks the first one-hot message flag. Valid values: 1..5.
+// Station 1 unlocks the first one-hot message flag. Valid values: 1..7.
 constexpr uint8_t STATION_NUMBER = 1;
 
 constexpr unsigned long BROADCAST_INTERVAL_MS = 2000UL;

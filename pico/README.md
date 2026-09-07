@@ -18,7 +18,7 @@ Example:
 from station_roles import ROLE_RECEIVE_EVALUATE_UNLOCK
 
 STATION_ROLE = ROLE_RECEIVE_EVALUATE_UNLOCK
-STATION_NUMBER = 1  # Valid values: 1..5
+STATION_NUMBER = 1  # Valid values: 1..7
 ```
 
 Here, `0x07` unlocks a Morse-code message on the badge. The station sends it as

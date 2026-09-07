@@ -10,7 +10,7 @@ not change any other base station.
 - Station address: **`0xFB21`**.
 - Unlock command: **`0x07`**.
 - Role: transmit only; no IR receiver is initialized or required.
-- Trigger: a normally-open push button connected between GP15 and GND.
+- Trigger: a normally-open push button connected between GP15 and 3.3 V.
 - Idle: no NEC transmission. The program only samples the button.
 - Success: releasing between 3 and 4 seconds sends one activation containing
   three complete extended-NEC frames and lights the green LED for 3 seconds.
@@ -28,10 +28,11 @@ not change any other base station.
 | Button connection | Pico connection |
 |---|---|
 | One terminal | GP15, physical pin 20 |
-| Other terminal | GND, physical pin 18 |
+| Other terminal | 3V3(OUT), physical pin 36 |
 
-`main.py` enables GP15's internal pull-up. The button is therefore active-low
-and needs no external pull-up resistor.
+`main.py` enables GP15's internal pull-down. The button is therefore active-high
+and needs no external pull-down resistor. Pico GPIO is 3.3 V only; never connect
+GP15 to 5 V.
 
 ### LITEON LTE-4208 transmitter
 

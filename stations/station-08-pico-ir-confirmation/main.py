@@ -4,6 +4,7 @@ from machine import Pin
 from time import sleep_ms
 
 from nec import NECReceiver
+from station_logic import is_confirmation_trigger
 
 IR_RECEIVER_PIN = 16
 GREEN_LED_PIN = 15
@@ -32,12 +33,21 @@ def run():
     green_led.off()
     print("MFOC Station 8 - Pico IR confirmation")
     print("IR receiver GP16, green confirmation LED GP15")
-    print("Waiting for a valid NEC frame")
+    print("Waiting for NEC command 0x01")
 
     while True:
         frame = receiver.read()
         if frame is not None:
-            confirm_frame(*frame)
+            address, command = frame
+            if is_confirmation_trigger(command):
+                confirm_frame(address, command)
+            else:
+                print(
+                    "IGNORED NEC address=0x{:04X} command=0x{:02X}".format(
+                        address,
+                        command,
+                    )
+                )
         sleep_ms(2)
 
 

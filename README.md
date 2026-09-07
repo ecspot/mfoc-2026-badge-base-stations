@@ -20,7 +20,7 @@ This folder is the source of truth for the base-station project.
 | [Station 5](stations/station-05-pico-stepper-safecracker/) | Raspberry Pi Pico | `0xFB30` | Memorize and enter three 3–5 digit codes using a stepper dial, one-digit display, and Up/Down/Select buttons. |
 | [Station 6](stations/station-06-pico-ultrasonic-distance/) | Raspberry Pi Pico | `0xFB40` | Hold a hand in three prompted ultrasonic distance zones for 750 ms each. |
 | [Station 7](stations/station-07-pico-simon-memory/) | Raspberry Pi Pico | `0xFB80` | Repeat four growing Simon light/button sequences to unlock. |
-| [Station 8](stations/station-08-pico-ir-confirmation/) | Raspberry Pi Pico | N/A | Receive any valid complete NEC frame and light a green confirmation LED for two seconds. |
+| [Station 8](stations/station-08-pico-ir-confirmation/) | Raspberry Pi Pico | N/A | Receive NEC command `0x01` and light a green confirmation LED for two seconds. |
 
 Both implementations provide:
 

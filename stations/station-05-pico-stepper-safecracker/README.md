@@ -13,9 +13,10 @@ Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit gam
 1. A badge advertisement (`0x01`) or report (`0x20`–`0x2F`) arms the game.
 2. The common-cathode display presents a random 3–5 digit code one digit at a
    time.
-3. The display switches to entry mode.
-4. Up and Down change the digit and move the stepper-driven physical dial.
-5. Select commits the displayed digit.
+3. The display turns off for entry mode.
+4. Up and Down move the stepper-driven physical dial; the dial indicates the
+   currently selected digit.
+5. Select commits the digit indicated by the physical dial.
 6. A wrong code flashes red and generates a new code. Previously completed
    correct codes remain counted.
 7. A correct code flashes green. Three correct codes transmit three full Station

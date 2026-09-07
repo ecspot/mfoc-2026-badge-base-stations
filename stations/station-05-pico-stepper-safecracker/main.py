@@ -127,9 +127,9 @@ def begin_code(now_ms):
 def begin_entry():
     global state
     move_dial_to(0)
-    display_digit(selected_digit)
+    blank_display()
     state = STATE_ENTERING
-    print("ENTER: use Up/Down, then Select for each digit")
+    print("ENTER: use the physical dial, then Select for each digit")
 
 
 def update_presentation(now_ms):
@@ -219,11 +219,9 @@ def handle_entry(now_ms):
     if up_event:
         stepper.queue_steps(step_delta_for_digit_change(selected_digit, 1))
         selected_digit = next_digit(selected_digit)
-        display_digit(selected_digit)
     elif down_event:
         stepper.queue_steps(step_delta_for_digit_change(selected_digit, -1))
         selected_digit = previous_digit(selected_digit)
-        display_digit(selected_digit)
     elif select_event:
         result = game.select_digit(selected_digit)
         print("Selected {}".format(selected_digit))

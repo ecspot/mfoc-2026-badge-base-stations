@@ -1,18 +1,22 @@
-"""MFOC Station 6 ultrasonic game in standalone bench-test mode."""
+"""MFOC Station 6: Pico ultrasonic distance code."""
 
 from machine import Pin, time_pulse_us
 from random import getrandbits
 from time import sleep_ms, sleep_us, ticks_add, ticks_diff, ticks_ms
 
+from nec import NECReceiver, NECTransmitter
 from station_logic import (
     EVENT_GAME_COMPLETE,
     EVENT_STEP_COMPLETE,
     MAX_TARGETS,
+    STATION_ADDRESS,
+    UNLOCK_COMMAND,
     DistanceGame,
     ZONE_FAR,
     ZONE_MIDDLE,
     ZONE_NEAR,
     classify_distance_cm,
+    is_badge_trigger_command,
     sequence_from_random_values,
 )
 
@@ -21,11 +25,15 @@ ECHO_PIN = 15
 NEAR_LED_PIN = 6
 MIDDLE_LED_PIN = 7
 FAR_LED_PIN = 8
+IR_RECEIVER_PIN = 14
+IR_TRANSMITTER_PIN = 17
 SUCCESS_LED_PIN = 18
 
 SAMPLE_INTERVAL_MS = 60
 GAME_TIMEOUT_MS = 45000
 SUCCESS_LED_MS = 3000
+FULL_FRAME_TRANSMISSIONS = 3
+BETWEEN_FRAMES_MS = 120
 
 trigger = Pin(TRIGGER_PIN, Pin.OUT)
 echo = Pin(ECHO_PIN, Pin.IN)
@@ -34,6 +42,8 @@ zone_leds = {
     ZONE_MIDDLE: Pin(MIDDLE_LED_PIN, Pin.OUT),
     ZONE_FAR: Pin(FAR_LED_PIN, Pin.OUT),
 }
+receiver = NECReceiver(IR_RECEIVER_PIN)
+transmitter = NECTransmitter(IR_TRANSMITTER_PIN)
 success_led = Pin(SUCCESS_LED_PIN, Pin.OUT)
 
 active = False
@@ -81,11 +91,22 @@ def read_distance_cm():
     return pulse_us / 58.0
 
 
-def show_simulated_unlock():
-    print("BENCH TEST: green GP18 simulates IR unlock transmission")
-    success_led.on()
-    sleep_ms(SUCCESS_LED_MS)
-    success_led.off()
+def send_unlock_frames():
+    print(
+        "TX ultrasonic unlock address=0x{:04X} command=0x{:02X}".format(
+            STATION_ADDRESS,
+            UNLOCK_COMMAND,
+        )
+    )
+    receiver.pause()
+    try:
+        for frame_index in range(FULL_FRAME_TRANSMISSIONS):
+            transmitter.send(STATION_ADDRESS, UNLOCK_COMMAND)
+            if frame_index + 1 < FULL_FRAME_TRANSMISSIONS:
+                sleep_ms(BETWEEN_FRAMES_MS)
+    finally:
+        transmitter.off()
+        receiver.resume()
 
 
 def finish_game(reason):
@@ -100,8 +121,11 @@ def finish_game(reason):
 def complete_game():
     print("SUCCESS: {} distance targets completed".format(len(game.sequence)))
     flash_zone_leds(3, 120, 100)
-    show_simulated_unlock()
-    finish_game("bench test complete; reset to play again")
+    success_led.on()
+    send_unlock_frames()
+    sleep_ms(SUCCESS_LED_MS)
+    success_led.off()
+    finish_game("waiting for badge")
 
 
 def shutdown_game(reason):
@@ -146,16 +170,35 @@ def update_game(now_ms):
         complete_game()
 
 
+def poll_badge(now_ms):
+    frame = receiver.read()
+    if frame is None:
+        return
+    address, command = frame
+    print("RX NEC address=0x{:04X} command=0x{:02X}".format(address, command))
+    if is_badge_trigger_command(command):
+        if not active:
+            arm_game(now_ms)
+        else:
+            print("Game already active; badge trigger ignored")
+
+
 def run():
     trigger.off()
     all_leds_off()
     success_led.off()
     print("MFOC Station 6 - Pico ultrasonic distance code")
-    print("BENCH TEST: IR disabled; success LED GP18; starting automatically")
-    arm_game(ticks_ms())
+    print(
+        "Locked address=0x{:04X} command=0x{:02X}".format(
+            STATION_ADDRESS,
+            UNLOCK_COMMAND,
+        )
+    )
+    print("Station idle: waiting for badge")
 
     while True:
         now_ms = ticks_ms()
+        poll_badge(now_ms)
         if active:
             if ticks_diff(now_ms, game_started_ms) >= GAME_TIMEOUT_MS:
                 shutdown_game("45-second timeout")
@@ -167,6 +210,8 @@ def run():
 try:
     run()
 except KeyboardInterrupt:
+    receiver.pause()
+    transmitter.off()
     all_leds_off()
     success_led.off()
     print("Ultrasonic game stopped")

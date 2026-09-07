@@ -28,7 +28,7 @@ FAILURE_LED_MS = 2000
 FULL_FRAME_TRANSMISSIONS = 3
 BETWEEN_FRAMES_MS = 120
 
-button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
+button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_DOWN)
 status_led = Pin(STATUS_LED_PIN, Pin.OUT)
 red_led = Pin(RED_LED_PIN, Pin.OUT)
 green_led = Pin(GREEN_LED_PIN, Pin.OUT)
@@ -81,13 +81,13 @@ def run():
     green_led.off()
     transmitter.off()
     print("MFOC Station 1 - timed button unlock transmitter")
-    print("Button: GP{} to GND".format(BUTTON_PIN))
+    print("Button: GP{} to 3.3V".format(BUTTON_PIN))
     print("Red LED: GP{}; green LED: GP{}".format(RED_LED_PIN, GREEN_LED_PIN))
     print("IR TX: GP{}".format(IR_TRANSMITTER_PIN))
     print("Release between 3 and 4 seconds to unlock")
 
     while True:
-        is_pressed = button.value() == 0
+        is_pressed = button.value() == 1
         status_led.value(1 if is_pressed else 0)
         result = hold_detector.update(is_pressed, ticks_ms())
         if result is not None:

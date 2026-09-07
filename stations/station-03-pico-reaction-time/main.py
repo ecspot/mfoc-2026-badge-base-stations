@@ -35,6 +35,7 @@ LOOP_DELAY_MS = 2
 START_BLINK_COUNT = 3
 START_BLINK_MS = 200
 MISS_LED_MS = 3000
+SUCCESS_LED_MS = 3000
 FULL_FRAME_TRANSMISSIONS = 3
 BETWEEN_FRAMES_MS = 120
 
@@ -170,9 +171,17 @@ def handle_game_event(event, now_ms):
         go_started_ms = None
         if BENCH_TEST_MODE:
             print("BENCH TEST: IR unlock transmission disabled")
-            print("Station idle: reset to play again")
         else:
             send_unlock_frames()
+            if receiver is not None:
+                receiver.pause()
+        sleep_ms(SUCCESS_LED_MS)
+        green_success_led.off()
+        if BENCH_TEST_MODE:
+            print("Station idle: reset to play again")
+        else:
+            if receiver is not None:
+                receiver.resume()
             print("Station idle: waiting for badge")
     elif event == EVENT_TIMEOUT:
         go_started_ms = None

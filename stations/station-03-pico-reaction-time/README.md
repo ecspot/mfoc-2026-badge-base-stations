@@ -18,7 +18,9 @@ reaction-time challenge, and transmits the Station 3 unlock after success.
 4. When the LED turns on, the player has up to 750 ms to register a reaction.
 5. Complete three measured reactions. Their combined time must be **under 730
    ms** to succeed.
-6. Success turns on the green LED and transmits three Station 3 unlock frames.
+6. Success turns on the green LED, transmits three Station 3 unlock frames,
+   keeps green on for three seconds, then turns it off and waits for another
+   badge.
 
 Pressing before the LED is a false start. The player must release the button,
 a new random delay begins, and no unlock is transmitted. A false start does not
@@ -120,8 +122,9 @@ The tests lock:
    frames from GP18.
 8. Confirm a total of 730 ms or more lights red and restarts the series without
    transmitting.
-9. Send another badge frame and confirm green turns off as the next game starts.
-10. Start again and do nothing; confirm the game times out after 30 seconds.
+9. Confirm green turns off after three seconds and the station returns to idle.
+10. Send another badge frame and confirm a new game starts.
+11. Start again and do nothing; confirm the game times out after 30 seconds.
 
 Physical reaction timing, IR range, optical carrier compatibility, and badge
 unlock behavior remain hardware-validation steps.

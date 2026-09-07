@@ -9,6 +9,8 @@ from station_logic import (
     EVENT_FALSE_START,
     EVENT_GO,
     EVENT_MISSED,
+    EVENT_ROUND_COMPLETE,
+    EVENT_SERIES_FAILED,
     EVENT_SUCCESS,
     EVENT_TIMEOUT,
     STATE_IDLE,
@@ -28,6 +30,7 @@ RED_MISS_LED_PIN = 16
 GREEN_SUCCESS_LED_PIN = 17
 IR_TRANSMITTER_PIN = 18
 
+BENCH_TEST_MODE = False
 LOOP_DELAY_MS = 2
 START_BLINK_COUNT = 3
 START_BLINK_MS = 200
@@ -38,9 +41,9 @@ BETWEEN_FRAMES_MS = 120
 status_led = Pin(STATUS_LED_PIN, Pin.OUT)
 red_miss_led = Pin(RED_MISS_LED_PIN, Pin.OUT)
 green_success_led = Pin(GREEN_SUCCESS_LED_PIN, Pin.OUT)
-button = Pin(BUTTON_PIN, Pin.IN, Pin.PULL_UP)
-receiver = NECReceiver(IR_RECEIVER_PIN)
-transmitter = NECTransmitter(IR_TRANSMITTER_PIN)
+button = Pin(BUTTON_PIN, Pin.IN)
+receiver = None if BENCH_TEST_MODE else NECReceiver(IR_RECEIVER_PIN)
+transmitter = None if BENCH_TEST_MODE else NECTransmitter(IR_TRANSMITTER_PIN)
 button_detector = ButtonPressDetector(ticks_diff_fn=ticks_diff)
 game = ReactionGame(ticks_diff_fn=ticks_diff, ticks_add_fn=ticks_add)
 go_started_ms = None
@@ -74,6 +77,8 @@ def arm_game():
 
 
 def send_unlock_frames():
+    if receiver is None or transmitter is None:
+        return
     print(
         "TX Station 3 unlock address=0x{:04X} command=0x{:02X}".format(
             STATION_ADDRESS,
@@ -134,16 +139,41 @@ def handle_game_event(event, now_ms):
         red_miss_led.on()
         miss_feedback_until_ms = ticks_add(now_ms, MISS_LED_MS)
         print("MISSED: red LED on for three seconds")
+    elif event == EVENT_ROUND_COMPLETE:
+        go_started_ms = None
+        status_led.off()
+        print(
+            "ROUND {}/3: {} ms; total {} ms".format(
+                len(game.reaction_times),
+                game.last_reaction_ms,
+                sum(game.reaction_times),
+            )
+        )
+    elif event == EVENT_SERIES_FAILED:
+        go_started_ms = None
+        status_led.off()
+        red_miss_led.on()
+        miss_feedback_until_ms = ticks_add(now_ms, MISS_LED_MS)
+        print("SERIES FAILED: total {} ms; must be under 730 ms".format(game.last_total_ms))
     elif event == EVENT_SUCCESS:
         status_led.off()
         green_success_led.on()
         reaction_ms = getattr(game, "last_reaction_ms", None)
         if reaction_ms is None and go_started_ms is not None:
             reaction_ms = ticks_diff(now_ms, go_started_ms)
-        print("SUCCESS: button pressed {} ms after LED".format(reaction_ms))
+        print(
+            "SUCCESS: third reaction {} ms; three-round total {} ms".format(
+                reaction_ms,
+                game.last_total_ms,
+            )
+        )
         go_started_ms = None
-        send_unlock_frames()
-        print("Station idle: waiting for badge")
+        if BENCH_TEST_MODE:
+            print("BENCH TEST: IR unlock transmission disabled")
+            print("Station idle: reset to play again")
+        else:
+            send_unlock_frames()
+            print("Station idle: waiting for badge")
     elif event == EVENT_TIMEOUT:
         go_started_ms = None
         status_led.off()
@@ -153,6 +183,8 @@ def handle_game_event(event, now_ms):
 
 
 def poll_badge():
+    if receiver is None:
+        return
     frame = receiver.read()
     if frame is None:
         return
@@ -172,14 +204,19 @@ def run():
     green_success_led.off()
     print("MFOC Station 3 - Pico reaction-time game")
     print("IR RX GP14, reaction GP13, button GP15, miss GP16, success GP17, IR TX GP18")
-    print("Station idle: waiting for badge")
+    if BENCH_TEST_MODE:
+        print("BENCH TEST: IR disabled; starting automatically")
+        arm_game()
+    else:
+        print("Station idle: waiting for badge")
 
     while True:
         now_ms = ticks_ms()
-        poll_badge()
+        if not BENCH_TEST_MODE:
+            poll_badge()
 
         press_event = button_detector.update(
-            is_pressed=button.value() == 0,
+            is_pressed=button.value() == 1,
             now_ms=now_ms,
         )
         event = game.update(now_ms=now_ms, button_pressed=press_event)
@@ -192,8 +229,10 @@ def run():
 try:
     run()
 except KeyboardInterrupt:
-    receiver.pause()
-    transmitter.off()
+    if receiver is not None:
+        receiver.pause()
+    if transmitter is not None:
+        transmitter.off()
     status_led.off()
     red_miss_led.off()
     green_success_led.off()

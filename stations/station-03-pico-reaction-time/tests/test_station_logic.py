@@ -12,17 +12,21 @@ from station_logic import (
     EVENT_FALSE_START,
     EVENT_GO,
     EVENT_MISSED,
+    EVENT_ROUND_COMPLETE,
+    EVENT_SERIES_FAILED,
     EVENT_SUCCESS,
     EVENT_TIMEOUT,
     MAX_WAIT_MS,
     MIN_WAIT_MS,
     REACTION_WINDOW_MS,
+    ROUNDS_REQUIRED,
     ReactionGame,
     STATE_GO,
     STATE_IDLE,
     STATE_NEEDS_RESTART,
     STATE_WAITING,
     STATION_ADDRESS,
+    TOTAL_SUCCESS_MS,
     UNLOCK_COMMAND,
     encode_nec_frame,
     is_badge_trigger_command,
@@ -52,6 +56,8 @@ class StationThreeProtocolTests(unittest.TestCase):
         self.assertEqual(MIN_WAIT_MS, 2000)
         self.assertEqual(MAX_WAIT_MS, 5000)
         self.assertEqual(REACTION_WINDOW_MS, 750)
+        self.assertEqual(ROUNDS_REQUIRED, 3)
+        self.assertEqual(TOTAL_SUCCESS_MS, 730)
 
     def test_random_wait_mapping_stays_inside_locked_range(self):
         self.assertEqual(wait_from_random_bits(0), 2000)
@@ -69,17 +75,52 @@ class ReactionGameTests(unittest.TestCase):
         self.assertEqual(game.update(now_ms=3000, button_pressed=False), EVENT_GO)
         self.assertEqual(game.state, STATE_GO)
 
-    def test_press_at_reaction_deadline_succeeds(self):
+    def test_first_measured_reaction_completes_one_round(self):
         game = ReactionGame()
         game.arm(now_ms=0, wait_ms=2000)
         game.update(now_ms=2000, button_pressed=False)
 
         self.assertEqual(
-            game.update(now_ms=2750, button_pressed=True),
-            EVENT_SUCCESS,
+            game.update(now_ms=2300, button_pressed=True),
+            EVENT_ROUND_COMPLETE,
         )
-        self.assertEqual(game.last_reaction_ms, 750)
+        self.assertEqual(game.last_reaction_ms, 300)
+        self.assertEqual(game.reaction_times, [300])
+        self.assertEqual(game.state, STATE_NEEDS_RESTART)
+
+    def test_three_reactions_totaling_under_730_succeed(self):
+        game = ReactionGame()
+        game.arm(now_ms=0, wait_ms=2000)
+
+        game.update(now_ms=2000, button_pressed=False)
+        self.assertEqual(game.update(now_ms=2200, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=2200, wait_ms=2000)
+        game.update(now_ms=4200, button_pressed=False)
+        self.assertEqual(game.update(now_ms=4449, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=4449, wait_ms=2000)
+        game.update(now_ms=6449, button_pressed=False)
+
+        self.assertEqual(game.update(now_ms=6698, button_pressed=True), EVENT_SUCCESS)
+        self.assertEqual(game.reaction_times, [200, 249, 249])
+        self.assertEqual(game.last_total_ms, 698)
         self.assertEqual(game.state, STATE_IDLE)
+
+    def test_three_reactions_totaling_exactly_730_fail(self):
+        game = ReactionGame()
+        game.arm(now_ms=0, wait_ms=2000)
+
+        game.update(now_ms=2000, button_pressed=False)
+        self.assertEqual(game.update(now_ms=2240, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=2240, wait_ms=2000)
+        game.update(now_ms=4240, button_pressed=False)
+        self.assertEqual(game.update(now_ms=4485, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=4485, wait_ms=2000)
+        game.update(now_ms=6485, button_pressed=False)
+
+        self.assertEqual(game.update(now_ms=6730, button_pressed=True), EVENT_SERIES_FAILED)
+        self.assertEqual(game.last_total_ms, 730)
+        self.assertEqual(game.reaction_times, [])
+        self.assertEqual(game.state, STATE_NEEDS_RESTART)
 
     def test_press_after_reaction_deadline_is_missed(self):
         game = ReactionGame()

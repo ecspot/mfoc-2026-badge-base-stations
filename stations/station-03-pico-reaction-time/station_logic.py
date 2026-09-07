@@ -5,6 +5,8 @@ UNLOCK_COMMAND = 0x07
 MIN_WAIT_MS = 2000
 MAX_WAIT_MS = 5000
 REACTION_WINDOW_MS = 750
+ROUNDS_REQUIRED = 3
+TOTAL_SUCCESS_MS = 730
 GAME_TIMEOUT_MS = 30000
 BUTTON_DEBOUNCE_MS = 20
 
@@ -16,6 +18,8 @@ STATE_NEEDS_RESTART = "needs_restart"
 EVENT_GO = "go"
 EVENT_FALSE_START = "false_start"
 EVENT_MISSED = "missed"
+EVENT_ROUND_COMPLETE = "round_complete"
+EVENT_SERIES_FAILED = "series_failed"
 EVENT_SUCCESS = "success"
 EVENT_TIMEOUT = "timeout"
 
@@ -30,7 +34,7 @@ def wait_from_random_bits(random_bits):
 
 
 class ButtonPressDetector:
-    """Debounce an active-low button and report once per stable press."""
+    """Debounce a button state and report once per stable press."""
 
     def __init__(self, ticks_diff_fn=None):
         self._ticks_diff = ticks_diff_fn or (lambda left, right: left - right)
@@ -77,6 +81,8 @@ class ReactionGame:
         self._signal_at_ms = 0
         self._game_deadline_ms = 0
         self.last_reaction_ms = None
+        self.last_total_ms = None
+        self.reaction_times = []
 
     @staticmethod
     def _validate_wait(wait_ms):
@@ -86,6 +92,8 @@ class ReactionGame:
     def arm(self, now_ms, wait_ms):
         self._validate_wait(wait_ms)
         self._game_deadline_ms = self._ticks_add(now_ms, GAME_TIMEOUT_MS)
+        self.last_total_ms = None
+        self.reaction_times = []
         self._start_attempt(now_ms, wait_ms)
 
     def _start_attempt(self, now_ms, wait_ms):
@@ -121,12 +129,24 @@ class ReactionGame:
         if self.state == STATE_GO:
             elapsed_ms = self._ticks_diff(now_ms, self._signal_at_ms)
             if elapsed_ms > REACTION_WINDOW_MS:
+                self.reaction_times = []
                 self.state = STATE_NEEDS_RESTART
                 return EVENT_MISSED
             if button_pressed:
                 self.last_reaction_ms = elapsed_ms
-                self.state = STATE_IDLE
-                return EVENT_SUCCESS
+                self.reaction_times.append(elapsed_ms)
+                if len(self.reaction_times) < ROUNDS_REQUIRED:
+                    self.state = STATE_NEEDS_RESTART
+                    return EVENT_ROUND_COMPLETE
+
+                self.last_total_ms = sum(self.reaction_times)
+                if self.last_total_ms < TOTAL_SUCCESS_MS:
+                    self.state = STATE_IDLE
+                    return EVENT_SUCCESS
+
+                self.reaction_times = []
+                self.state = STATE_NEEDS_RESTART
+                return EVENT_SERIES_FAILED
 
         return None
 

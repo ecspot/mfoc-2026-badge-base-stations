@@ -13,7 +13,9 @@ interaction code stays here rather than changing the reusable `arduino/` or
 | 5 | Raspberry Pi Pico | `0xFB30` | Enter three generated codes with stepper dial and display | [`station-05-pico-stepper-safecracker/`](station-05-pico-stepper-safecracker/) |
 | 6 | Raspberry Pi Pico | `0xFB40` | Complete three prompted ultrasonic distance zones | [`station-06-pico-ultrasonic-distance/`](station-06-pico-ultrasonic-distance/) |
 | 7 | Raspberry Pi Pico | `0xFB80` | Complete four Simon memory rounds | [`station-07-pico-simon-memory/`](station-07-pico-simon-memory/) |
+| 8 | Raspberry Pi Pico | N/A | Receive NEC command `0x01` and light a confirmation LED | [`station-08-pico-ir-confirmation/`](station-08-pico-ir-confirmation/) |
 
 Stations 5, 6, and 7 are independent deployments with unique fixed addresses.
 Confirm that the badge firmware flashed for the event includes the registered
 Station 6 and Station 7 achievement bits; badge firmware is outside this repo.
+Station 8 is receive-only and does not have or transmit an unlock address.

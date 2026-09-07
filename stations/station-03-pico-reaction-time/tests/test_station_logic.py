@@ -59,7 +59,7 @@ class StationThreeProtocolTests(unittest.TestCase):
         self.assertEqual(REACTION_WINDOW_MS, 750)
         self.assertEqual(ROUNDS_REQUIRED, 3)
         self.assertEqual(TOTAL_SUCCESS_MS, 730)
-        self.assertEqual(GAME_TIMEOUT_MS, 90000)
+        self.assertEqual(GAME_TIMEOUT_MS, 30000)
 
     def test_random_wait_mapping_stays_inside_locked_range(self):
         self.assertEqual(wait_from_random_bits(0), 2000)
@@ -165,12 +165,21 @@ class ReactionGameTests(unittest.TestCase):
         self.assertIsNone(game.update(now_ms=4499, button_pressed=False))
         self.assertEqual(game.update(now_ms=4500, button_pressed=False), EVENT_GO)
 
+    def test_retry_restarts_the_30_second_timeout(self):
+        game = ReactionGame()
+        game.arm(now_ms=0, wait_ms=2000)
+        game.update(now_ms=1000, button_pressed=True)
+
+        game.restart_attempt(now_ms=29000, wait_ms=2000)
+        self.assertIsNone(game.update(now_ms=30000, button_pressed=False))
+        self.assertEqual(game.update(now_ms=59000, button_pressed=False), EVENT_TIMEOUT)
+
     def test_overall_game_times_out_without_transmitting(self):
         game = ReactionGame()
         game.arm(now_ms=100, wait_ms=5000)
 
         self.assertEqual(
-            game.update(now_ms=90100, button_pressed=False),
+            game.update(now_ms=30100, button_pressed=False),
             EVENT_TIMEOUT,
         )
         self.assertEqual(game.state, STATE_IDLE)

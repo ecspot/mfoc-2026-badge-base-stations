@@ -7,7 +7,7 @@ MAX_WAIT_MS = 5000
 REACTION_WINDOW_MS = 750
 ROUNDS_REQUIRED = 3
 TOTAL_SUCCESS_MS = 730
-GAME_TIMEOUT_MS = 90000
+GAME_TIMEOUT_MS = 30000
 BUTTON_DEBOUNCE_MS = 20
 
 STATE_IDLE = "idle"
@@ -105,6 +105,7 @@ class ReactionGame:
     def restart_attempt(self, now_ms, wait_ms):
         if self.state != STATE_NEEDS_RESTART:
             raise RuntimeError("reaction attempt is not waiting for restart")
+        self._game_deadline_ms = self._ticks_add(now_ms, GAME_TIMEOUT_MS)
         self._start_attempt(now_ms, wait_ms)
 
     def update(self, now_ms, button_pressed):

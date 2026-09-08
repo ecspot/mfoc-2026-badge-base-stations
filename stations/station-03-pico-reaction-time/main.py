@@ -155,7 +155,7 @@ def handle_game_event(event, now_ms):
         status_led.off()
         red_miss_led.on()
         miss_feedback_until_ms = ticks_add(now_ms, MISS_LED_MS)
-        print("SERIES FAILED: total {} ms; must be under 730 ms".format(game.last_total_ms))
+        print("SERIES FAILED: total {} ms; must be under 750 ms".format(game.last_total_ms))
     elif event == EVENT_SUCCESS:
         status_led.off()
         green_success_led.on()

@@ -16,7 +16,7 @@ reaction-time challenge, and transmits the Station 3 unlock after success.
 2. The reaction LED blinks three times, then turns off.
 3. The reaction LED remains off for a random **2–5 seconds**.
 4. When the LED turns on, the player has up to 750 ms to register a reaction.
-5. Complete three measured reactions. Their combined time must be **under 730
+5. Complete three measured reactions. Their combined time must be **under 750
    ms** to succeed.
 6. Success turns on the green LED, transmits three Station 3 unlock frames,
    keeps green on for three seconds, then turns it off and waits for another
@@ -25,7 +25,7 @@ reaction-time challenge, and transmits the Station 3 unlock after success.
 Pressing before the LED is a false start. The player must release the button,
 a new random delay begins, and no unlock is transmitted. A false start does not
 count as one of the three measured reactions. Missing an individual 750 ms
-window or reaching a three-reaction total of 730 ms or more turns on the red
+window or reaching a three-reaction total of 750 ms or more turns on the red
 miss LED and restarts the series. A held button reports only once and must be
 released before another press can register.
 
@@ -109,7 +109,7 @@ The tests lock:
 - address, command, and exact NEC frame;
 - accepted badge trigger commands;
 - random-delay bounds;
-- three measured reactions with a combined time strictly under 730 ms;
+- three measured reactions with a combined time strictly under 750 ms;
 - false starts and missed-window retries;
 - renewable 30-second inactivity timeout;
 - button debounce, held-button non-repeat, and release re-arming.
@@ -123,9 +123,9 @@ The tests lock:
 5. Deliberately miss and confirm the red GP16 LED stays on for three seconds,
    then turns off as the next attempt begins.
 6. Complete three reactions and confirm each time and the running total print.
-7. Confirm a total below 730 ms turns on green GP17 and transmits three unlock
+7. Confirm a total below 750 ms turns on green GP17 and transmits three unlock
    frames from GP18.
-8. Confirm a total of 730 ms or more lights red and restarts the series without
+8. Confirm a total of 750 ms or more lights red and restarts the series without
    transmitting.
 9. Confirm green turns off after three seconds and the station returns to idle.
 10. Send another badge frame and confirm a new game starts.

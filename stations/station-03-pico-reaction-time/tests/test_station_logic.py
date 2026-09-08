@@ -58,7 +58,7 @@ class StationThreeProtocolTests(unittest.TestCase):
         self.assertEqual(MAX_WAIT_MS, 5000)
         self.assertEqual(REACTION_WINDOW_MS, 750)
         self.assertEqual(ROUNDS_REQUIRED, 3)
-        self.assertEqual(TOTAL_SUCCESS_MS, 730)
+        self.assertEqual(TOTAL_SUCCESS_MS, 750)
         self.assertEqual(GAME_TIMEOUT_MS, 30000)
 
     def test_random_wait_mapping_stays_inside_locked_range(self):
@@ -90,7 +90,7 @@ class ReactionGameTests(unittest.TestCase):
         self.assertEqual(game.reaction_times, [300])
         self.assertEqual(game.state, STATE_NEEDS_RESTART)
 
-    def test_three_reactions_totaling_under_730_succeed(self):
+    def test_three_reactions_totaling_under_750_succeed(self):
         game = ReactionGame()
         game.arm(now_ms=0, wait_ms=2000)
 
@@ -107,20 +107,20 @@ class ReactionGameTests(unittest.TestCase):
         self.assertEqual(game.last_total_ms, 698)
         self.assertEqual(game.state, STATE_IDLE)
 
-    def test_three_reactions_totaling_exactly_730_fail(self):
+    def test_three_reactions_totaling_exactly_750_fail(self):
         game = ReactionGame()
         game.arm(now_ms=0, wait_ms=2000)
 
         game.update(now_ms=2000, button_pressed=False)
-        self.assertEqual(game.update(now_ms=2240, button_pressed=True), EVENT_ROUND_COMPLETE)
-        game.restart_attempt(now_ms=2240, wait_ms=2000)
-        game.update(now_ms=4240, button_pressed=False)
-        self.assertEqual(game.update(now_ms=4485, button_pressed=True), EVENT_ROUND_COMPLETE)
-        game.restart_attempt(now_ms=4485, wait_ms=2000)
-        game.update(now_ms=6485, button_pressed=False)
+        self.assertEqual(game.update(now_ms=2250, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=2250, wait_ms=2000)
+        game.update(now_ms=4250, button_pressed=False)
+        self.assertEqual(game.update(now_ms=4500, button_pressed=True), EVENT_ROUND_COMPLETE)
+        game.restart_attempt(now_ms=4500, wait_ms=2000)
+        game.update(now_ms=6500, button_pressed=False)
 
-        self.assertEqual(game.update(now_ms=6730, button_pressed=True), EVENT_SERIES_FAILED)
-        self.assertEqual(game.last_total_ms, 730)
+        self.assertEqual(game.update(now_ms=6750, button_pressed=True), EVENT_SERIES_FAILED)
+        self.assertEqual(game.last_total_ms, 750)
         self.assertEqual(game.reaction_times, [])
         self.assertEqual(game.state, STATE_NEEDS_RESTART)
 

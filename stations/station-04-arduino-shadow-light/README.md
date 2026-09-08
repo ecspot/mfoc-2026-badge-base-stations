@@ -7,9 +7,9 @@ and transmits the Station 4 unlock only after success.
 ## Locked identity
 
 - Platform: Arduino Uno or ATmega328P Nano.
-- Station address: **`0xFB28`**.
+- Station address: **`0xFB24`**.
 - Unlock command: **`0x07`**.
-- Encoded extended-NEC frame: **`0xF807FB28`**.
+- Encoded extended-NEC frame: **`0xF807FB24`**.
 
 ## Interaction
 
@@ -22,7 +22,7 @@ and transmits the Station 4 unlock only after success.
    - Cover the sensor continuously for one second.
    - Uncover it continuously for one second.
    - Cover it continuously for one second.
-5. Success sends three complete NEC frames using address `0xFB28` and command
+5. Success sends three complete NEC frames using address `0xFB24` and command
    `0x07`, then returns to idle.
 
 The calibrated covered threshold is 60% of the uncovered baseline. The uncovered
@@ -113,7 +113,7 @@ sources used by Arduino IDE.
    LED placement or reduce ambient shielding and re-arm.
 4. Cover, uncover, and cover the sensor for one second each, following the guide
    LED and serial prompts.
-5. Confirm serial reports Station 4 address `0xFB28`, command `0x07`, and three
+5. Confirm serial reports Station 4 address `0xFB24`, command `0x07`, and three
    complete unlock frames only after the final step.
 6. Repeat with unstable lighting and confirm the current hold resets without
    transmitting.

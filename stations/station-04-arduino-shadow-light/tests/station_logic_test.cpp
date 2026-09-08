@@ -4,10 +4,10 @@
 
 using namespace Station04;
 
-static_assert(STATION_ADDRESS == 0xFB28U, "Station 4 address must remain locked");
+static_assert(STATION_ADDRESS == 0xFB24U, "Station 4 address must remain locked");
 static_assert(UNLOCK_COMMAND == 0x07U, "Unlock command must remain locked");
 static_assert(
-    encodeNecFrame(STATION_ADDRESS, UNLOCK_COMMAND) == 0xF807FB28UL,
+    encodeNecFrame(STATION_ADDRESS, UNLOCK_COMMAND) == 0xF807FB24UL,
     "Station 4 extended-NEC frame changed");
 
 static_assert(isBadgeTriggerCommand(0x01U), "Advertisement must arm Station 4");

@@ -5,17 +5,17 @@ MIN_STATION_NUMBER = 1
 UNLOCK_ADDRESSES = (
     0xFB21,
     0xFB22,
+    0xFB23,
     0xFB24,
-    0xFB28,
-    0xFB30,
-    0xFB40,
+    0xFB25,
+    0xFB26,
     0xFB80,
 )
 MAX_STATION_NUMBER = len(UNLOCK_ADDRESSES)
 
 
 def make_unlock_address(station_number):
-    """Return the registered one-hot unlock address for station 1 through 7."""
+    """Return the registered unlock address for station 1 through 7."""
     if not MIN_STATION_NUMBER <= station_number <= MAX_STATION_NUMBER:
         raise ValueError("station_number must be in the range 1..7")
     return UNLOCK_ADDRESSES[station_number - 1]

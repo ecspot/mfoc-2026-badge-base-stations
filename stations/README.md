@@ -19,3 +19,9 @@ Stations 5, 6, and 7 are independent deployments with unique fixed addresses.
 Confirm that the badge firmware flashed for the event includes the registered
 Station 6 and Station 7 achievement bits; badge firmware is outside this repo.
 Station 8 is receive-only and does not have or transmit an unlock address.
+
+## Utility stations
+
+| Utility | Platform | Behavior | Deployment |
+|---|---|---|---|
+| IR button transmitter | Raspberry Pi Pico | An active-high button sends three NEC command `0x01` frames | [`special-pico-ir-button-transmitter/`](special-pico-ir-button-transmitter/) |

@@ -4,9 +4,9 @@ Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit gam
 
 ## Identity
 
-- Address: **`0xFB40`**.
+- Address: **`0xFB26`**.
 - Unlock command: **`0x07`**.
-- Extended-NEC frame: **`0xF807FB40`**.
+- Extended-NEC frame: **`0xF807FB26`**.
 
 This is an independent Station 6 deployment. The badge firmware flashed for the
 event must include the registered Station 6 achievement address; badge firmware

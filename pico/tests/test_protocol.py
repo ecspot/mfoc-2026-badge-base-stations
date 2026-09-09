@@ -8,13 +8,13 @@ from protocol import UNLOCK_COMMAND, is_badge_trigger_command, make_unlock_addre
 
 
 class ProtocolTests(unittest.TestCase):
-    def test_unlock_addresses_are_one_hot(self):
+    def test_registered_unlock_addresses(self):
         self.assertEqual(make_unlock_address(1), 0xFB21)
         self.assertEqual(make_unlock_address(2), 0xFB22)
-        self.assertEqual(make_unlock_address(3), 0xFB24)
-        self.assertEqual(make_unlock_address(4), 0xFB28)
-        self.assertEqual(make_unlock_address(5), 0xFB30)
-        self.assertEqual(make_unlock_address(6), 0xFB40)
+        self.assertEqual(make_unlock_address(3), 0xFB23)
+        self.assertEqual(make_unlock_address(4), 0xFB24)
+        self.assertEqual(make_unlock_address(5), 0xFB25)
+        self.assertEqual(make_unlock_address(6), 0xFB26)
         self.assertEqual(make_unlock_address(7), 0xFB80)
 
     def test_unregistered_station_numbers_are_rejected(self):

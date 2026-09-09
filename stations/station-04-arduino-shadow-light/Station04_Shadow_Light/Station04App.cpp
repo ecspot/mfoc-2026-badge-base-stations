@@ -272,7 +272,7 @@ void station04Setup() {
         Serial.println(F("BENCH TEST: IR disabled; starting automatically"));
         armStation(millis());
     } else {
-        Serial.println(F("Locked address=0xFB28 command=0x07"));
+        Serial.println(F("Locked address=0xFB24 command=0x07"));
         IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);
         IrSender.begin(IR_TRANSMITTER_PIN);
         Serial.println(F("Station idle; waiting for badge trigger"));

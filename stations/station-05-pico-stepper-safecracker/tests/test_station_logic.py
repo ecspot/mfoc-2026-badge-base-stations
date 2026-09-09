@@ -30,9 +30,9 @@ from station_logic import (
 
 class SafecrackerProtocolTests(unittest.TestCase):
     def test_station_five_identity_and_frame_are_locked(self):
-        self.assertEqual(STATION_ADDRESS, 0xFB30)
+        self.assertEqual(STATION_ADDRESS, 0xFB25)
         self.assertEqual(UNLOCK_COMMAND, 0x07)
-        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB30)
+        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB25)
 
     def test_code_generation_uses_three_to_five_digits(self):
         self.assertEqual(code_from_random_values([0, 1, 2, 3, 4, 5]), (1, 2, 3))

@@ -4,7 +4,7 @@
 
 namespace Station04 {
 
-constexpr uint16_t STATION_ADDRESS = 0xFB28U;
+constexpr uint16_t STATION_ADDRESS = 0xFB24U;
 constexpr uint8_t UNLOCK_COMMAND = 0x07U;
 constexpr uint16_t MIN_USABLE_BASELINE = 200U;
 constexpr uint32_t CALIBRATION_MS = 1000UL;

@@ -1,6 +1,6 @@
 """Pure protocol and interaction logic for Pico Station 3."""
 
-STATION_ADDRESS = 0xFB24
+STATION_ADDRESS = 0xFB23
 UNLOCK_COMMAND = 0x07
 MIN_WAIT_MS = 2000
 MAX_WAIT_MS = 5000

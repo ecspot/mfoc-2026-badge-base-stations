@@ -7,9 +7,9 @@ and transmits the Station 4 unlock only after success.
 ## Locked identity
 
 - Platform: Arduino Uno or ATmega328P Nano.
-- Station address: **`0xFB28`**.
+- Station address: **`0xFB24`**.
 - Unlock command: **`0x07`**.
-- Encoded extended-NEC frame: **`0xF807FB28`**.
+- Encoded extended-NEC frame: **`0xF807FB24`**.
 
 ## Interaction
 
@@ -27,7 +27,7 @@ and transmits the Station 4 unlock only after success.
    - The green status LED stays on while the sensor matches the requested state.
      If it does not match, green turns off and that event's timer restarts.
 6. Success blinks the green LED for five seconds, sends three complete NEC frames
-   using address `0xFB28` and command `0x07`, then returns to idle.
+   using address `0xFB24` and command `0x07`, then returns to idle.
 
 The calibrated covered threshold is 60% of the uncovered baseline. The uncovered
 threshold is 80%, leaving a 20% hysteresis band that matches neither state. A
@@ -124,7 +124,7 @@ sources used by Arduino IDE.
    between one and four seconds and that green stays on only while the sensor is
    correct.
 6. Confirm the green LED blinks for five seconds at success.
-7. Confirm serial reports Station 4 address `0xFB28`, command `0x07`, and three
+7. Confirm serial reports Station 4 address `0xFB24`, command `0x07`, and three
    complete unlock frames only after the final step.
 8. Repeat with unstable lighting and confirm the current hold resets without
    transmitting.

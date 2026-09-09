@@ -10,10 +10,10 @@ constexpr uint8_t MAX_STATION_NUMBER = 7;
 constexpr uint16_t UNLOCK_ADDRESSES[MAX_STATION_NUMBER] = {
     0xFB21,
     0xFB22,
+    0xFB23,
     0xFB24,
-    0xFB28,
-    0xFB30,
-    0xFB40,
+    0xFB25,
+    0xFB26,
     0xFB80,
 };
 

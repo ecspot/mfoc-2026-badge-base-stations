@@ -20,14 +20,30 @@ def make_edges(address, command):
 
 
 class NecCodecTests(unittest.TestCase):
-    def test_decodes_station_six_unlock(self):
-        levels, durations = make_edges(0xFB26, 0x07)
-        self.assertEqual(decode_nec_edges(levels, durations, len(levels)), (0xFB26, 0x07))
+    def test_decodes_any_valid_complete_nec_frame(self):
+        levels, durations = make_edges(0xFB24, 0x2A)
+        self.assertEqual(
+            decode_nec_edges(levels, durations, len(levels)),
+            (0xFB24, 0x2A),
+        )
+
+    def test_finds_frame_after_idle_edge(self):
+        levels, durations = make_edges(0x1234, 0x56)
+        levels.insert(0, 1)
+        durations.insert(0, 15000)
+        self.assertEqual(
+            decode_nec_edges(levels, durations, len(levels)),
+            (0x1234, 0x56),
+        )
 
     def test_rejects_bad_command_complement(self):
-        levels, durations = make_edges(0xFB26, 0x07)
+        levels, durations = make_edges(0xFB24, 0x2A)
         durations[-1] = 560 if durations[-1] == 1690 else 1690
         self.assertIsNone(decode_nec_edges(levels, durations, len(levels)))
+
+    def test_rejects_incomplete_frame(self):
+        levels, durations = make_edges(0xFB24, 0x2A)
+        self.assertIsNone(decode_nec_edges(levels[:-2], durations[:-2], len(levels) - 2))
 
 
 if __name__ == "__main__":

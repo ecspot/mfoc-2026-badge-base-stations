@@ -32,13 +32,13 @@ from station_logic import (
 
 class StationThreeProtocolTests(unittest.TestCase):
     def test_protocol_is_locked_to_station_three(self):
-        self.assertEqual(STATION_ADDRESS, 0xFB24)
+        self.assertEqual(STATION_ADDRESS, 0xFB23)
         self.assertEqual(UNLOCK_COMMAND, 0x07)
 
     def test_nec_frame_contains_station_three_unlock(self):
         self.assertEqual(
             encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND),
-            0xF807FB24,
+            0xF807FB23,
         )
 
     def test_recognizes_only_badge_trigger_commands(self):

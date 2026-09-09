@@ -25,9 +25,9 @@ from station_logic import (
 
 class UltrasonicProtocolTests(unittest.TestCase):
     def test_station_six_identity_is_locked(self):
-        self.assertEqual(STATION_ADDRESS, 0xFB40)
+        self.assertEqual(STATION_ADDRESS, 0xFB26)
         self.assertEqual(UNLOCK_COMMAND, 0x07)
-        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB40)
+        self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB26)
 
     def test_distance_zones_have_safety_gaps(self):
         self.assertEqual(classify_distance_cm(8), ZONE_NEAR)

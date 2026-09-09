@@ -4,9 +4,9 @@ Self-contained Raspberry Pi Pico / MicroPython receive–interact–transmit gam
 
 ## Identity
 
-- Address: **`0xFB30`**.
+- Address: **`0xFB25`**.
 - Unlock command: **`0x07`**.
-- Extended-NEC frame: **`0xF807FB30`**.
+- Extended-NEC frame: **`0xF807FB25`**.
 
 ## Game
 

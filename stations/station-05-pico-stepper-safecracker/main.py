@@ -271,7 +271,7 @@ def run():
     blank_display()
     set_feedback()
     print("MFOC Station 5 - Pico stepper safecracker")
-    print("Locked address=0xFB30 command=0x07")
+    print("Locked address=0xFB25 command=0x07")
     print("Station idle: waiting for badge")
 
     while True:

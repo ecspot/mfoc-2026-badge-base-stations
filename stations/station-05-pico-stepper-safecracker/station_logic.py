@@ -1,6 +1,6 @@
 """Pure protocol and game logic for the Pico stepper safecracker."""
 
-STATION_ADDRESS = 0xFB30
+STATION_ADDRESS = 0xFB25
 UNLOCK_COMMAND = 0x07
 CODES_REQUIRED = 3
 BUTTON_DEBOUNCE_MS = 30

@@ -7,9 +7,9 @@ unlock only after success.
 ## Locked identity
 
 - Platform: Raspberry Pi Pico.
-- Station address: **`0xFB24`**.
+- Station address: **`0xFB23`**.
 - Unlock command: **`0x07`**.
-- Encoded extended-NEC frame: **`0xF807FB24`**.
+- Encoded extended-NEC frame: **`0xF807FB23`**.
 
 ## Interaction
 

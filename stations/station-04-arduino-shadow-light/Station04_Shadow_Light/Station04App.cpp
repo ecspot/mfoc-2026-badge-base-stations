@@ -215,7 +215,7 @@ void station04Setup() {
     Serial.begin(115200);
     delay(250);
     Serial.println(F("MFOC Station 4 - Arduino shadow-light game"));
-    Serial.println(F("Locked address=0xFB28 command=0x07"));
+    Serial.println(F("Locked address=0xFB24 command=0x07"));
     Serial.println(F("IR RX D2, IR TX D3, lamp D5, guide D6, LDR A0"));
 
     IrReceiver.begin(IR_RECEIVER_PIN, DISABLE_LED_FEEDBACK);

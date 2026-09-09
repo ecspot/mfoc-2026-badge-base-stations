@@ -23,14 +23,14 @@ def make_edges(address, command):
 
 class NecCodecTests(unittest.TestCase):
     def test_decodes_station_three_extended_nec_frame(self):
-        levels, durations = make_edges(0xFB24, 0x07)
+        levels, durations = make_edges(0xFB23, 0x07)
         self.assertEqual(
             decode_nec_edges(levels, durations, len(levels)),
-            (0xFB24, 0x07),
+            (0xFB23, 0x07),
         )
 
     def test_rejects_bad_command_complement(self):
-        levels, durations = make_edges(0xFB24, 0x07)
+        levels, durations = make_edges(0xFB23, 0x07)
         durations[-1] = 560 if durations[-1] == 1690 else 1690
         self.assertIsNone(decode_nec_edges(levels, durations, len(levels)))
 

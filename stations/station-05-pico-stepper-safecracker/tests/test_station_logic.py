@@ -15,6 +15,7 @@ from station_logic import (
     GAME_TIMEOUT_MS,
     STATION_ADDRESS,
     UNLOCK_COMMAND,
+    WAKE_LED_SEQUENCE,
     SafecrackerGame,
     ButtonPressDetector,
     code_from_random_values,
@@ -33,6 +34,19 @@ class SafecrackerProtocolTests(unittest.TestCase):
         self.assertEqual(STATION_ADDRESS, 0xFB25)
         self.assertEqual(UNLOCK_COMMAND, 0x07)
         self.assertEqual(encode_nec_frame(STATION_ADDRESS, UNLOCK_COMMAND), 0xF807FB25)
+
+    def test_wake_sequence_is_red_green_red_green_both_both(self):
+        self.assertEqual(
+            WAKE_LED_SEQUENCE,
+            (
+                (True, False),
+                (False, True),
+                (True, False),
+                (False, True),
+                (True, True),
+                (True, True),
+            ),
+        )
 
     def test_code_generation_uses_three_to_five_digits(self):
         self.assertEqual(code_from_random_values([0, 1, 2, 3, 4, 5]), (1, 2, 3))

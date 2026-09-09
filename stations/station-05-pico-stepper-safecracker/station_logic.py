@@ -5,6 +5,14 @@ UNLOCK_COMMAND = 0x07
 CODES_REQUIRED = 3
 BUTTON_DEBOUNCE_MS = 30
 GAME_TIMEOUT_MS = 120000
+WAKE_LED_SEQUENCE = (
+    (True, False),
+    (False, True),
+    (True, False),
+    (False, True),
+    (True, True),
+    (True, True),
+)
 
 DISPLAY_PATTERNS = (
     (1, 1, 1, 1, 1, 1, 0),

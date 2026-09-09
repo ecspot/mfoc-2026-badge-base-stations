@@ -13,6 +13,7 @@ from station_logic import (
     UNLOCK_COMMAND,
     ButtonPressDetector,
     SafecrackerGame,
+    WAKE_LED_SEQUENCE,
     code_from_random_values,
     game_timed_out,
     is_badge_trigger_command,
@@ -38,6 +39,8 @@ PRESENT_BLANK_MS = 250
 FEEDBACK_MS = 900
 FULL_FRAME_TRANSMISSIONS = 3
 BETWEEN_FRAMES_MS = 120
+WAKE_STEP_ON_MS = 200
+WAKE_STEP_OFF_MS = 100
 
 STATE_IDLE = "idle"
 STATE_PRESENTING = "presenting"
@@ -82,6 +85,16 @@ def blank_display():
 def set_feedback(red=False, green=False):
     red_led.value(1 if red else 0)
     green_led.value(1 if green else 0)
+
+
+def play_wake_sequence():
+    blank_display()
+    print("WAKE: red, green, red, green, both, both")
+    for red, green in WAKE_LED_SEQUENCE:
+        set_feedback(red=red, green=green)
+        sleep_ms(WAKE_STEP_ON_MS)
+        set_feedback()
+        sleep_ms(WAKE_STEP_OFF_MS)
 
 
 def random_code():
@@ -245,12 +258,13 @@ def update_button_detectors(now_ms):
     select_detector.update(select_button.value() == 0, now_ms)
 
 
-def arm_game(now_ms):
+def arm_game():
     global game_started_ms
     game.reset()
-    game_started_ms = now_ms
     move_dial_to(0)
-    begin_code(now_ms)
+    play_wake_sequence()
+    game_started_ms = ticks_ms()
+    begin_code(game_started_ms)
     print("ARMED: memorize and enter three codes")
 
 
@@ -262,7 +276,7 @@ def poll_badge(now_ms):
     print("RX NEC address=0x{:04X} command=0x{:02X}".format(address, command))
     if is_badge_trigger_command(command):
         if state == STATE_IDLE:
-            arm_game(now_ms)
+            arm_game()
         else:
             print("Game already active; badge trigger ignored")
 
